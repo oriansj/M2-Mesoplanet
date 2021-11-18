@@ -60,6 +60,7 @@ struct token_list
 	union
 	{
 		struct token_list* arguments;
+		struct token_list* expansion;
 		int depth;
 		int linenumber;
 	};

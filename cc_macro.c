@@ -754,6 +754,8 @@ struct token_list* maybe_expand(struct token_list* token)
 
 	struct macro_list* hold = lookup_macro(token);
 	struct token_list* hold2;
+	struct token_list* hold3;
+	struct token_list* hold4;
 	if(NULL == token->next)
 	{
 		line_error_token(macro_token);
@@ -774,9 +776,38 @@ struct token_list* maybe_expand(struct token_list* token)
 	{
 		return token->next;
 	}
-	hold2 = insert_tokens(token, hold->expansion);
 
-	return hold2->next;
+	/* Match macro arguments with stored names */
+	hold3 = hold->arguments;
+	if(NULL != hold3)
+	{
+		require('(' == token->s[0], "missing open parenthesis for macro function\n");
+		token = eat_token(token);
+		require(NULL != token, "got an EOF terminated macro function\n");
+		do
+		{
+			hold2 = calloc(1, sizeof(struct token_list));
+			hold2->s = token->s;
+			hold2->next = hold->arguments->expansion;
+			hold->arguments->expansion = hold2;
+			token = eat_token(token);
+			require(NULL != token, "incomplete macro call\n");
+			if(token->s[0] == ',')
+			{
+				hold->arguments->expansion = reverse_list(hold->arguments->expansion);
+				hold->arguments = hold->arguments->next;
+				require(NULL != hold->arguments, "too many arguments in macro call\n");
+				token = eat_token(token);
+				require(NULL != token, "incomplete macro call\n");
+			}
+		} while(token->s[0] != ')');
+		hold->arguments->expansion = reverse_list(hold->arguments->expansion);
+		hold->arguments = hold3;
+		token = eat_token(token);
+	}
+	hold4 = insert_tokens(token, hold->expansion);
+
+	return hold4->next;
 }
 
 void preprocess()
