@@ -22,6 +22,7 @@ void require(int bool, char* error);
 int strtoint(char* a);
 void line_error_token(struct token_list* list);
 struct token_list* eat_token(struct token_list* head);
+struct token_list* reverse_list(struct token_list* head);
 
 struct conditional_inclusion
 {
@@ -35,6 +36,7 @@ struct macro_list
 	struct macro_list* next;
 	char* symbol;
 	struct token_list* expansion;
+	struct token_list* arguments;
 };
 
 struct macro_list* macro_env;
@@ -423,6 +425,7 @@ int macro_expression()
 void handle_define()
 {
 	struct macro_list* hold;
+	struct token_list* arg;
 	struct token_list* expansion_end = NULL;
 
 	/* don't use #define statements from non-included blocks */
@@ -449,6 +452,39 @@ void handle_define()
 
 	/* discard the macro name */
 	eat_current_token();
+
+	/* Handle macro arguments */
+	if(macro_token->s[0] == '(')
+	{
+		/* discard ( */
+		eat_current_token();
+		require(NULL != macro_token, "got an EOF terminated #define\n");
+		if(macro_token->s[0] != ')')
+		{
+			arg = calloc(1, sizeof(struct token_list));
+			arg->s = macro_token->s;
+			hold->arguments = arg;
+			eat_current_token();
+			require(NULL != macro_token, "incomplete macro call\n");
+			while(macro_token->s[0] == ',')
+			{
+				eat_current_token();
+				require(NULL != macro_token, "incomplete macro call, got an EOF instead of an argument\n");
+				arg = calloc(1, sizeof(struct token_list));
+				arg->s = macro_token->s;
+				arg->next = hold->arguments;
+				hold->arguments = arg;
+				eat_current_token();
+				require(NULL != macro_token, "incomplete macro call\n");
+			}
+		}
+		eat_current_token();
+
+		/* Reverse argument list */
+		hold->arguments = reverse_list(hold->arguments);
+
+		require(NULL != macro_token, "got an EOF terminated #define\n");
+	}
 
 	while (TRUE)
 	{
