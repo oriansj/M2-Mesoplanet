@@ -88,6 +88,32 @@ void eat_newline_tokens()
 	}
 }
 
+struct token_list* lookup_token(struct token_list* token, struct token_list* arguments)
+{
+	char *s;
+	if(NULL == token)
+	{
+		fputs("null token received in token\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	struct token_list* hold = arguments;
+
+	while (NULL != hold)
+	{
+		if (match(token->s, hold->s))
+		{
+			/* found! */
+			return hold->expansion;
+		}
+
+		hold = hold->next;
+	}
+
+	/* not found! */
+	return NULL;
+}
+
 /* returns the first token inserted; inserts *before* point */
 struct token_list* insert_tokens(struct token_list* point, struct token_list* token)
 {
@@ -124,6 +150,27 @@ struct token_list* insert_tokens(struct token_list* point, struct token_list* to
 	}
 
 	return first;
+}
+
+/* returns the first token inserted; inserts *before* point */
+struct token_list* copy_list(struct token_list* token)
+{
+	struct token_list* copy;
+        struct token_list* prev = NULL;
+
+	while (NULL != token)
+	{
+		copy = calloc(1, sizeof(struct token_list));
+		copy->s = token->s;
+
+		copy->next = prev;
+		copy->prev = prev;
+		prev = copy;
+		token = token->next;
+	}
+	copy = reverse_list(copy);
+
+	return copy;
 }
 
 struct macro_list* lookup_macro(struct token_list* token)
@@ -743,6 +790,31 @@ void macro_directive()
 	}
 }
 
+struct token_list* expand_macro_functions(struct token_list* expansion, struct token_list* arguments)
+{
+	struct token_list* expanded_token;
+	struct token_list* head;
+	struct token_list* hold; /* Same as head unless head == NULL */
+	head = copy_list(expansion);
+	while(NULL != head)
+	{
+		expanded_token = lookup_token(head, arguments);
+		hold = head;
+		if(NULL != expanded_token)
+		{
+			insert_tokens(head, expanded_token);
+			hold = head->prev;
+			head = eat_token(head);
+		}
+		else
+		{
+			head = head->next;
+		}
+	}
+	while(NULL != hold->prev) hold = hold->prev;
+	return hold;
+}
+
 struct token_list* maybe_expand(struct token_list* token)
 {
 	if(NULL == token)
@@ -805,9 +877,10 @@ struct token_list* maybe_expand(struct token_list* token)
 		hold->arguments = hold3;
 		token = eat_token(token);
 	}
-	hold4 = insert_tokens(token, hold->expansion);
+	hold4 = expand_macro_functions(hold->expansion, hold->arguments);
+	hold4 = insert_tokens(token, hold4);
 
-	return hold4->next;
+	return hold4;
 }
 
 void preprocess()
