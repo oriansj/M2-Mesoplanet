@@ -27,11 +27,7 @@ all: M2-Mesoplanet
 
 M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc.c cc_globals.c cc_globals.h
 	$(CC) $(CFLAGS) \
-	functions/match.c \
-	functions/in_set.c \
-	functions/numerate_number.c \
-	functions/string.c \
-	functions/require.c \
+	M2libc/bootstrappable.c \
 	cc_reader.c \
 	cc_core.c \
 	cc_macro.c \

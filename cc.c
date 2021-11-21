@@ -34,7 +34,7 @@ void preprocess();
 void program();
 void recursive_output(struct token_list* i, FILE* out);
 void output_tokens(struct token_list *i, FILE* out);
-int numerate_string(char *a);
+int strtoint(char *a);
 
 int main(int argc, char** argv)
 {
@@ -45,6 +45,7 @@ int main(int argc, char** argv)
 	FILE* destination_file = stdout;
 	Architecture = KNIGHT_NATIVE; /* Assume Knight-native */
 	char* name;
+	char* hold;
 
 	int i = 1;
 	while(i <= argc)
@@ -88,7 +89,13 @@ int main(int argc, char** argv)
 		}
 		else if(match(argv[i], "--max-string"))
 		{
-			MAX_STRING = numerate_string(argv[i+1]);
+			hold = argv[i+1];
+			if(NULL == hold)
+			{
+				fputs("--max-string requires a numeric argument\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			MAX_STRING = strtoint(hold);
 			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
 			i = i + 2;
 		}

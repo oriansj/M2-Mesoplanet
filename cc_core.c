@@ -21,14 +21,20 @@
 #include "gcc_req.h"
 #include <stdint.h>
 
-char* numerate_number(int a);
+/* Imported functions */
+char* int2str(int x, int base, int signed_p);
 
 void line_error_token(struct token_list *token)
 {
-	require(NULL != token, "EOF reached inside of line_error\n");
+	if(NULL == token)
+	{
+		fputs("EOF reached inside of line_error\n", stderr);
+		fputs("problem at end of file\n", stderr);
+		return;
+	}
 	fputs(token->filename, stderr);
 	fputs(":", stderr);
-	fputs(numerate_number(token->linenumber), stderr);
+	fputs(int2str(token->linenumber, 10, TRUE), stderr);
 	fputs(":", stderr);
 }
 

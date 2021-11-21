@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Jeremiah Orians
+ * Copyright (C) 2021 Andrius Štikonas <andrius@stikonas.eu>
  * This file is part of M2-Planet.
  *
  * M2-Planet is free software: you can redistribute it and/or modify
@@ -23,9 +24,16 @@ struct token_list* token;
 int line;
 char* file;
 
+int grab_byte()
+{
+	int c = fgetc(input);
+	if(10 == c) line = line + 1;
+	return c;
+}
+
 int clearWhiteSpace(int c)
 {
-	if((32 == c) || (9 == c)) return clearWhiteSpace(fgetc(input));
+	if((32 == c) || (9 == c)) return clearWhiteSpace(grab_byte());
 	return c;
 }
 
@@ -34,7 +42,7 @@ int consume_byte(int c)
 	hold_string[string_index] = c;
 	string_index = string_index + 1;
 	require(MAX_STRING > string_index, "Token exceeded MAX_STRING char limit\nuse --max-string number to increase\n");
-	return fgetc(input);
+	return grab_byte();
 }
 
 int preserve_string(int c)
@@ -48,10 +56,23 @@ int preserve_string(int c)
 		c = consume_byte(c);
 		require(EOF != c, "Unterminated string\n");
 	} while(escape || (c != frequent));
-	return fgetc(input);
+	return grab_byte();
 }
 
- void fixup_label()
+
+void copy_string(char* target, char* source, int max)
+{
+	int i = 0;
+	while(0 != source[i])
+	{
+		target[i] = source[i];
+		i = i + 1;
+		if(i == max) break;
+	}
+}
+
+
+void fixup_label()
 {
 	int hold = ':';
 	int prev;
@@ -217,9 +238,9 @@ reset:
 			c = ' ';
 		}
 	}
-	else if(in_set(c, "<=>|&!-"))
+	else if(in_set(c, "<=>|&!^%"))
 	{
-		c = preserve_keyword(c, "<=>|&!-");
+		c = preserve_keyword(c, "<=>|&!^%");
 	}
 	else if(in_set(c, "'\""))
 	{
@@ -230,31 +251,68 @@ reset:
 		c = consume_byte(c);
 		if(c == '*')
 		{
-			c = fgetc(input);
+			c = grab_byte();
 			while(c != '/')
 			{
 				while(c != '*')
 				{
-					c = fgetc(input);
+					c = grab_byte();
 					require(EOF != c, "Hit EOF inside of block comment\n");
-					if('\n' == c) line = line + 1;
 				}
-				c = fgetc(input);
+				c = grab_byte();
 				require(EOF != c, "Hit EOF inside of block comment\n");
-				if('\n' == c) line = line + 1;
 			}
-			c = fgetc(input);
+			c = grab_byte();
 			goto reset;
 		}
 		else if(c == '/')
 		{
 			c = consume_byte(c);
 		}
+		else if(c == '=')
+		{
+			c = consume_byte(c);
+		}
 	}
 	else if (c == '\n')
 	{
-		line = line + 1;
 		c = consume_byte(c);
+	}
+	else if(c == '*')
+	{
+		c = consume_byte(c);
+		if(c == '=')
+		{
+			c = consume_byte(c);
+		}
+	}
+	else if(c == '+')
+	{
+		c = consume_byte(c);
+		if(c == '=')
+		{
+			c = consume_byte(c);
+		}
+		if(c == '+')
+		{
+			c = consume_byte(c);
+		}
+	}
+	else if(c == '-')
+	{
+		c = consume_byte(c);
+		if(c == '=')
+		{
+			c = consume_byte(c);
+		}
+		if(c == '>')
+		{
+			c = consume_byte(c);
+		}
+		if(c == '-')
+		{
+			c = consume_byte(c);
+		}
 	}
 	else
 	{
@@ -263,7 +321,7 @@ reset:
 
 	/* More efficiently allocate memory for string */
 	current->s = calloc(string_index + 2, sizeof(char));
-	require(NULL != current->s, "Exhusted memory while trying to copy a token\n");
+	require(NULL != current->s, "Exhausted memory while trying to copy a token\n");
 	copy_string(current->s, hold_string, MAX_STRING);
 
 	current->prev = token;
@@ -294,7 +352,7 @@ struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* fi
 	line = 1;
 	file = filename;
 	token = current;
-	int ch =fgetc(input);
+	int ch = grab_byte();
 	while(EOF != ch) ch = get_token(ch);
 
 	return token;

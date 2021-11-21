@@ -1,4 +1,5 @@
 /* Copyright (C) 2021 Sanne Wouda
+ * Copyright (C) 2021 Andrius Štikonas <andrius@stikonas.eu>
  * This file is part of M2-Planet.
  *
  * M2-Planet is free software: you can redistribute it and/or modify
@@ -18,7 +19,7 @@
 #include "gcc_req.h"
 
 void require(int bool, char* error);
-int numerate_string(char* a);
+int strtoint(char* a);
 void line_error_token(struct token_list* list);
 struct token_list* eat_token(struct token_list* head);
 
@@ -41,6 +42,18 @@ struct conditional_inclusion* conditional_inclusion_top;
 
 /* point where we are currently modifying the global_token list */
 struct token_list* macro_token;
+
+void init_macro_env(char* sym, char* value, char* source, int num)
+{
+	struct macro_list* hold = macro_env;
+	macro_env = calloc(1, sizeof(struct macro_list));
+	macro_env->symbol = sym;
+	macro_env->next = hold;
+	macro_env->expansion = calloc(1, sizeof(struct token_list));
+	macro_env->expansion->s = value;
+	macro_env->expansion->filename = source;
+	macro_env->expansion->linenumber = num;
+}
 
 void eat_current_token()
 {
@@ -113,6 +126,13 @@ struct token_list* insert_tokens(struct token_list* point, struct token_list* to
 
 struct macro_list* lookup_macro(struct token_list* token)
 {
+	if(NULL == token)
+	{
+		line_error_token(macro_token);
+		fputs("null token received in lookup_macro\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	struct macro_list* hold = macro_env;
 
 	while (NULL != hold)
@@ -130,15 +150,65 @@ struct macro_list* lookup_macro(struct token_list* token)
 	return NULL;
 }
 
+void remove_macro(struct token_list* token)
+{
+	if(NULL == token)
+	{
+		line_error_token(macro_token);
+		fputs("received a null in remove_macro\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	struct macro_list* hold = macro_env;
+	struct macro_list* temp;
+
+	/* Deal with the first element */
+	if (match(token->s, hold->symbol)) {
+		macro_env = hold->next;
+		free(hold);
+		return;
+	}
+
+	/* Remove element form the middle of linked list */
+	while (NULL != hold->next)
+	{
+		if (match(token->s, hold->next->symbol))
+		{
+			temp = hold->next;
+			hold->next = hold->next->next;
+			free(temp);
+			return;
+		}
+
+		hold = hold->next;
+	}
+
+	/* nothing to undefine */
+	return;
+}
+
 int macro_expression();
 int macro_variable()
 {
+	int value = 0;
+	struct macro_list* hold = lookup_macro(macro_token);
+	if (NULL != hold)
+	{
+		if(NULL == hold->expansion)
+		{
+			line_error_token(macro_token);
+			fputs("hold->expansion is a null\n", stderr);
+			exit(EXIT_FAILURE);
+		}
+		value = strtoint(hold->expansion->s);
+	}
 	eat_current_token();
-	return 0;
+	return value;
 }
+
 int macro_number()
 {
-	int result = numerate_string(macro_token->s);
+	int result = strtoint(macro_token->s);
 	eat_current_token();
 	return result;
 }
@@ -188,6 +258,12 @@ int macro_primary_expr()
 
 		if(TRUE == defined_has_paren)
 		{
+			if(NULL == macro_token)
+			{
+				line_error_token(macro_token);
+				fputs("unterminated define ( statement\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			require(')' == macro_token->s[0], "missing close parenthesis for defined()\n");
 			eat_current_token();
 		}
@@ -347,7 +423,17 @@ int macro_expression()
 void handle_define()
 {
 	struct macro_list* hold;
-	struct token_list* expansion_end;
+	struct token_list* expansion_end = NULL;
+
+	/* don't use #define statements from non-included blocks */
+	int conditional_define = TRUE;
+	if(NULL != conditional_inclusion_top)
+	{
+		if(FALSE == conditional_inclusion_top->include)
+		{
+			conditional_define = FALSE;
+		}
+	}
 
 	eat_current_token();
 
@@ -358,7 +444,8 @@ void handle_define()
 	hold = calloc(1, sizeof(struct macro_list));
 	hold->symbol = macro_token->s;
 	hold->next = macro_env;
-	macro_env = hold;
+	/* provided it isn't in a non-included block */
+	if(conditional_define) macro_env = hold;
 
 	/* discard the macro name */
 	eat_current_token();
@@ -369,9 +456,17 @@ void handle_define()
 
 		if ('\n' == macro_token->s[0])
 		{
+			if(NULL == expansion_end)
+			{
+				hold->expansion = NULL;
+				expansion_end = macro_token;
+				return;
+			}
 			expansion_end->next = NULL;
 			return;
 		}
+
+		require(NULL != hold, "#define got something it can't handle\n");
 
 		expansion_end = macro_token;
 
@@ -382,9 +477,60 @@ void handle_define()
 			hold->expansion = macro_token;
 		}
 
+		/* throw away if not used */
+		if(!conditional_define && (NULL != hold))
+		{
+			free(hold);
+			hold = NULL;
+		}
+
 		eat_current_token();
 	}
+}
 
+void handle_undef()
+{
+	eat_current_token();
+	remove_macro(macro_token);
+	eat_current_token();
+}
+
+void handle_error()
+{
+	/* don't use #error statements from non-included blocks */
+	int conditional_error = TRUE;
+	if(NULL != conditional_inclusion_top)
+	{
+		if(FALSE == conditional_inclusion_top->include)
+		{
+			conditional_error = FALSE;
+		}
+	}
+	eat_current_token();
+	/* provided it isn't in a non-included block */
+	if(conditional_error)
+	{
+		line_error_token(macro_token);
+		fputs(" error: #error ", stderr);
+		while (TRUE)
+		{
+			if ('\n' == macro_token->s[0]) break;
+			fputs(macro_token->s, stderr);
+			macro_token = macro_token->next;
+			fputs(" ", stderr);
+		}
+		fputs("\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+	while (TRUE)
+	{
+		/* discard the error */
+		if ('\n' == macro_token->s[0])
+		{
+			return;
+		}
+		eat_current_token();
+	}
 }
 
 void macro_directive()
@@ -398,6 +544,60 @@ void macro_directive()
 		eat_current_token();
 		/* evaluate constant integer expression */
 		result = macro_expression();
+		/* push conditional inclusion */
+		t = calloc(1, sizeof(struct conditional_inclusion));
+		t->prev = conditional_inclusion_top;
+		conditional_inclusion_top = t;
+		t->include = TRUE;
+
+		if(FALSE == result)
+		{
+			t->include = FALSE;
+		}
+
+		t->previous_condition_matched = t->include;
+	}
+	else if(match("#ifdef", macro_token->s))
+	{
+		eat_current_token();
+		require(NULL != macro_token, "got an EOF terminated macro defined expression\n");
+		if (NULL != lookup_macro(macro_token))
+		{
+			result = TRUE;
+		}
+		else
+		{
+			result = FALSE;
+		}
+		eat_current_token();
+
+		/* push conditional inclusion */
+		t = calloc(1, sizeof(struct conditional_inclusion));
+		t->prev = conditional_inclusion_top;
+		conditional_inclusion_top = t;
+		t->include = TRUE;
+
+		if(FALSE == result)
+		{
+			t->include = FALSE;
+		}
+
+		t->previous_condition_matched = t->include;
+	}
+	else if(match("#ifndef", macro_token->s))
+	{
+		eat_current_token();
+		require(NULL != macro_token, "got an EOF terminated macro defined expression\n");
+		if (NULL != lookup_macro(macro_token))
+		{
+			result = FALSE;
+		}
+		else
+		{
+			result = TRUE;
+		}
+		eat_current_token();
+
 		/* push conditional inclusion */
 		t = calloc(1, sizeof(struct conditional_inclusion));
 		t->prev = conditional_inclusion_top;
@@ -445,8 +645,26 @@ void macro_directive()
 	{
 		handle_define();
 	}
+	else if(match("#undef", macro_token->s))
+	{
+		handle_undef();
+	}
+	else if(match("#error", macro_token->s))
+	{
+		handle_error();
+	}
 	else
 	{
+		if(!match("#include", macro_token->s))
+		{
+			/* Put a big fat warning but see if we can just ignore */
+			fputs(">>WARNING<<\n>>WARNING<<\n", stderr);
+			line_error_token(macro_token);
+			fputs("feature: ", stderr);
+			fputs(macro_token->s, stderr);
+			fputs(" unsupported in M2-Planet\nIgnoring line, may result in bugs\n>>WARNING<<\n>>WARNING<<\n\n", stderr);
+		}
+
 		/* unhandled macro directive; let's eat until a newline; om nom nom */
 		while(TRUE)
 		{
@@ -467,14 +685,35 @@ void macro_directive()
 
 struct token_list* maybe_expand(struct token_list* token)
 {
+	if(NULL == token)
+	{
+		line_error_token(macro_token);
+		fputs("maybe_expand passed a null token\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	struct macro_list* hold = lookup_macro(token);
 	struct token_list* hold2;
+	if(NULL == token->next)
+	{
+		line_error_token(macro_token);
+		fputs("we can't expand a null token: ", stderr);
+		fputs(token->s, stderr);
+		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	if (NULL == hold)
 	{
 		return token->next;
 	}
 
 	token = eat_token(token);
+
+	if (NULL == hold->expansion)
+	{
+		return token->next;
+	}
 	hold2 = insert_tokens(token, hold->expansion);
 
 	return hold2->next;
