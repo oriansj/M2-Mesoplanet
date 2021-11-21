@@ -42,16 +42,19 @@ int main(int argc, char** argv)
 	FILE* in = stdin;
 	FILE* destination_file = stdout;
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
-	char* arch;
 	char* name;
 	char* hold;
-	int env=0;
 
 	int i = 1;
 	while(i <= argc)
 	{
 		if(NULL == argv[i])
 		{
+			i += 1;
+		}
+		else if(match(argv[i], "-E") || match(argv[i], "--preprocess-only"))
+		{
+			PREPROCESSOR_MODE = TRUE;
 			i += 1;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
@@ -140,12 +143,20 @@ int main(int argc, char** argv)
 	global_token = remove_line_comments(global_token);
 	preprocess();
 
-	fputs("\n/* Preprocessed source */\n", destination_file);
-	output_tokens(global_token, destination_file);
-
-	if (destination_file != stdout)
+	if(PREPROCESSOR_MODE)
 	{
-		fclose(destination_file);
+		fputs("\n/* Preprocessed source */\n", destination_file);
+		output_tokens(global_token, destination_file);
+
+		if (destination_file != stdout)
+		{
+			fclose(destination_file);
+		}
+	}
+	else
+	{
+		/* Put tempfile and spawning info here */
+		output_tokens(global_token, destination_file);
 	}
 	return EXIT_SUCCESS;
 }

@@ -24,6 +24,7 @@ mkdir -p ${TMPDIR}
 
 # Build the test
 bin/M2-Mesoplanet \
+	-E \
 	-f test/test0000/return.c \
 	-o ${TMPDIR}/return.c \
 	|| exit 1
