@@ -21,6 +21,9 @@
 #include"cc.h"
 
 /* The core functions */
+void populate_env(char** envp);
+void setup_env(char** envp);
+char* env_lookup(char* variable);
 void initialize_types();
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
 struct token_list* reverse_list(struct token_list* head);
@@ -35,7 +38,7 @@ void preprocess();
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
 
-int main(int argc, char** argv)
+int main(int argc, char** argv, char** envp)
 {
 	MAX_STRING = 4096;
 	PREPROCESSOR_MODE = FALSE;
@@ -141,6 +144,13 @@ int main(int argc, char** argv)
 	global_token = reverse_list(global_token);
 
 	global_token = remove_line_comments(global_token);
+
+	/* Get the environmental bits */
+	populate_env(envp);
+	setup_env(envp);
+	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
+	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
+
 	preprocess();
 
 	if(PREPROCESSOR_MODE)
@@ -155,7 +165,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		/* Put tempfile and spawning info here */
+		/* TODO Put tempfile and spawning info here */
 		output_tokens(global_token, destination_file);
 	}
 	return EXIT_SUCCESS;

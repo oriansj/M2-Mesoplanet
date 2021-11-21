@@ -47,3 +47,6 @@ extern int BOOTSTRAP_MODE;
 
 /* enable preprocessor-only mode */
 extern int PREPROCESSOR_MODE;
+
+/* enable spawn behavior to be effective */
+extern char* M2LIBC_PATH;
