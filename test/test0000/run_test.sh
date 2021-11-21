@@ -1,4 +1,6 @@
+#! /bin/sh
 ## Copyright (C) 2017 Jeremiah Orians
+## Copyright (C) 2020-2021 deesix <deesix@tuta.io>
 ## This file is part of M2-Planet.
 ##
 ## M2-Planet is free software: you can redistribute it and/or modify
@@ -14,6 +16,17 @@
 ## You should have received a copy of the GNU General Public License
 ## along with M2-Planet.  If not, see <http://www.gnu.org/licenses/>.
 
-# Directories storing data that should be ignored
-bin/
-test/*/tmp/
+set -x
+
+TMPDIR="test/test0000/tmp"
+
+mkdir -p ${TMPDIR}
+
+# Build the test
+bin/M2-Mesoplanet \
+	-f test/test0000/return.c \
+	-o ${TMPDIR}/return.c \
+	|| exit 1
+
+sha256sum -c test/test0000/proof.answer || exit 2
+exit 0

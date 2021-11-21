@@ -16,8 +16,8 @@
 ## along with M2-Mesoplanet.  If not, see <http://www.gnu.org/licenses/>.
 
 # Prevent rebuilding
-VPATH = bin:test:test/results
-PACKAGE = m2-planet
+VPATH = bin
+PACKAGE = m2-mesoplanet
 
 # C compiler settings
 CC?=gcc
@@ -40,7 +40,7 @@ M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc.c cc_globals.c cc_globa
 # Clean up after ourselves
 .PHONY: clean
 clean:
-	rm -rf bin/ test/results/
+	rm -rf bin/
 #	./test/test0000/cleanup.sh
 
 # Directories
@@ -51,8 +51,9 @@ results:
 	mkdir -p test/results
 
 # tests
-test: aarch64-tests amd64-tests knight-posix-tests knight-native-tests armv7l-tests x86-tests | results
-	sha256sum -c test/test.answers
+test: M2-Mesoplanet
+	./test/test0000/run_test.sh
+#	sha256sum -c test/test.answers
 
 
 # Generate test answers
