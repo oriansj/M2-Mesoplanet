@@ -30,9 +30,8 @@ struct token_list* remove_line_comment_tokens(struct token_list* head);
 struct token_list* remove_preprocessor_directives(struct token_list* head);
 
 void eat_newline_tokens();
+void init_macro_env(char* sym, char* value, char* source, int num);
 void preprocess();
-void program();
-void recursive_output(struct token_list* i, FILE* out);
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
 
@@ -44,25 +43,35 @@ int main(int argc, char** argv)
 	FILE* in = stdin;
 	FILE* destination_file = stdout;
 	Architecture = KNIGHT_NATIVE; /* Assume Knight-native */
+	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
+	char* arch;
 	char* name;
 	char* hold;
+	int env=0;
+	char* val;
 
 	int i = 1;
 	while(i <= argc)
 	{
 		if(NULL == argv[i])
 		{
-			i = i + 1;
+			i += 1;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
 		{
 			if(NULL == hold_string)
 			{
-				hold_string = calloc(MAX_STRING, sizeof(char));
-				require(NULL != hold_string, "Impossible Exhustion has occured\n");
+				hold_string = calloc(MAX_STRING + 4, sizeof(char));
+				require(NULL != hold_string, "Impossible Exhaustion has occured\n");
 			}
 
 			name = argv[i + 1];
+			if(NULL == name)
+			{
+				fputs("did not receive a file name\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+
 			in = fopen(name, "r");
 			if(NULL == in)
 			{
@@ -73,7 +82,7 @@ int main(int argc, char** argv)
 			}
 			global_token = read_all_tokens(in, global_token, name);
 			fclose(in);
-			i = i + 2;
+			i += 2;
 		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
@@ -85,7 +94,52 @@ int main(int argc, char** argv)
 				fputs("\n Aborting to avoid problems\n", stderr);
 				exit(EXIT_FAILURE);
 			}
-			i = i + 2;
+			i += 2;
+		}
+		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
+		{
+			arch = argv[i + 1];
+			if(match("knight-native", arch)) Architecture = KNIGHT_NATIVE;
+			else if(match("knight-posix", arch)) Architecture = KNIGHT_POSIX;
+			else if(match("x86", arch))
+			{
+				Architecture = X86;
+				init_macro_env("__i386__", "1", "--architecture", env);
+				env += 1;
+			}
+			else if(match("amd64", arch))
+			{
+				Architecture = AMD64;
+				init_macro_env("__x86_64__", "1", "--architecture", env);
+				env += 1;
+			}
+			else if(match("armv7l", arch))
+			{
+				Architecture = ARMV7L;
+				init_macro_env("__arm__", "1", "--architecture", env);
+				env += 1;
+			}
+			else if(match("aarch64", arch))
+			{
+				Architecture = AARCH64;
+				init_macro_env("__aarch64__", "1", "--architecture", env);
+				env += 1;
+			}
+			else if(match("riscv64", arch))
+			{
+				Architecture = RISCV64;
+				init_macro_env("__riscv", "1", "--architecture", env);
+				init_macro_env("__riscv_xlen", "64", "--architecture", env + 1);
+				env += 2;
+			}
+			else
+			{
+				fputs("Unknown architecture: ", stderr);
+				fputs(arch, stderr);
+				fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64 and riscv64\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			i += 2;
 		}
 		else if(match(argv[i], "--max-string"))
 		{
@@ -97,7 +151,7 @@ int main(int argc, char** argv)
 			}
 			MAX_STRING = strtoint(hold);
 			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
-			i = i + 2;
+			i += 2;
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
@@ -106,7 +160,7 @@ int main(int argc, char** argv)
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
 		{
-			fputs("M2-Mesoplanet v1.7.0\n", stderr);
+			fputs("M2-Mesoplanet v1.10.0\n", stderr);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -120,7 +174,7 @@ int main(int argc, char** argv)
 	if(stdin == in)
 	{
 		hold_string = calloc(MAX_STRING, sizeof(char));
-		require(NULL != hold_string, "Impossible Exhustion has occured\n");
+		require(NULL != hold_string, "Impossible Exhaustion has occured\n");
 		global_token = read_all_tokens(in, global_token, "STDIN");
 	}
 
