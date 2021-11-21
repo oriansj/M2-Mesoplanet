@@ -31,6 +31,7 @@ M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc.c cc_globals.c cc_globa
 	cc_reader.c \
 	cc_core.c \
 	cc_macro.c \
+	cc_env.c \
 	cc.c \
 	cc.h \
 	cc_globals.c \

@@ -38,17 +38,14 @@ int strtoint(char *a);
 int main(int argc, char** argv)
 {
 	MAX_STRING = 4096;
-	BOOTSTRAP_MODE = FALSE;
 	PREPROCESSOR_MODE = FALSE;
 	FILE* in = stdin;
 	FILE* destination_file = stdout;
-	Architecture = KNIGHT_NATIVE; /* Assume Knight-native */
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* arch;
 	char* name;
 	char* hold;
 	int env=0;
-	char* val;
 
 	int i = 1;
 	while(i <= argc)
@@ -92,51 +89,6 @@ int main(int argc, char** argv)
 				fputs("Unable to open for writing file: ", stderr);
 				fputs(argv[i + 1], stderr);
 				fputs("\n Aborting to avoid problems\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			i += 2;
-		}
-		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
-		{
-			arch = argv[i + 1];
-			if(match("knight-native", arch)) Architecture = KNIGHT_NATIVE;
-			else if(match("knight-posix", arch)) Architecture = KNIGHT_POSIX;
-			else if(match("x86", arch))
-			{
-				Architecture = X86;
-				init_macro_env("__i386__", "1", "--architecture", env);
-				env += 1;
-			}
-			else if(match("amd64", arch))
-			{
-				Architecture = AMD64;
-				init_macro_env("__x86_64__", "1", "--architecture", env);
-				env += 1;
-			}
-			else if(match("armv7l", arch))
-			{
-				Architecture = ARMV7L;
-				init_macro_env("__arm__", "1", "--architecture", env);
-				env += 1;
-			}
-			else if(match("aarch64", arch))
-			{
-				Architecture = AARCH64;
-				init_macro_env("__aarch64__", "1", "--architecture", env);
-				env += 1;
-			}
-			else if(match("riscv64", arch))
-			{
-				Architecture = RISCV64;
-				init_macro_env("__riscv", "1", "--architecture", env);
-				init_macro_env("__riscv_xlen", "64", "--architecture", env + 1);
-				env += 2;
-			}
-			else
-			{
-				fputs("Unknown architecture: ", stderr);
-				fputs(arch, stderr);
-				fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64 and riscv64\n", stderr);
 				exit(EXIT_FAILURE);
 			}
 			i += 2;
