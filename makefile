@@ -53,6 +53,7 @@ results:
 # tests
 test: M2-Mesoplanet
 	./test/test0000/run_test.sh
+	./test/test0001/run_test.sh
 #	sha256sum -c test/test.answers
 
 
