@@ -41,31 +41,24 @@ void setup_env()
 	if(NULL != hold) ARCH = hold;
 
 	/* Set desired architecture */
-	if(match("knight-native", ARCH)) Architecture = KNIGHT_NATIVE;
-	else if(match("knight-posix", ARCH)) Architecture = KNIGHT_POSIX;
-	else if(match("x86", ARCH))
+	if(match("x86", ARCH))
 	{
-		Architecture = X86;
 		init_macro_env("__i386__", "1", "--architecture", 0);
 	}
 	else if(match("amd64", ARCH))
 	{
-		Architecture = AMD64;
 		init_macro_env("__x86_64__", "1", "--architecture", 0);
 	}
 	else if(match("armv7l", ARCH))
 	{
-		Architecture = ARMV7L;
 		init_macro_env("__arm__", "1", "--architecture", 0);
 	}
 	else if(match("aarch64", ARCH))
 	{
-		Architecture = AARCH64;
 		init_macro_env("__aarch64__", "1", "--architecture", 0);
 	}
 	else if(match("riscv64", ARCH))
 	{
-		Architecture = RISCV64;
 		init_macro_env("__riscv", "1", "--architecture", 0);
 		init_macro_env("__riscv_xlen", "64", "--architecture", 1);
 	}

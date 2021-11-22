@@ -32,18 +32,8 @@ extern struct token_list* globals_list;
 extern char* hold_string;
 extern int string_index;
 
-/* Our Target Architecture */
-extern int Architecture;
-extern int register_size;
-
 /* Allow us to have a single settable max string */
 extern int MAX_STRING;
-
-/* make default type integer */
-extern struct type* integer;
-
-/* enable bootstrap-mode */
-extern int BOOTSTRAP_MODE;
 
 /* enable preprocessor-only mode */
 extern int PREPROCESSOR_MODE;

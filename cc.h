@@ -20,25 +20,9 @@
 #include <stdio.h>
 #include <string.h>
 
-// CONSTANT FALSE 0
-#define FALSE 0
-// CONSTANT TRUE 1
-#define TRUE 1
 
-// CONSTANT KNIGHT_NATIVE 0
-#define KNIGHT_NATIVE 0
-// CONSTANT KNIGHT_POSIX 1
-#define KNIGHT_POSIX 1
-// CONSTANT X86 2
-#define X86 2
-// CONSTANT AMD64 3
-#define AMD64 3
-// CONSTANT ARMV7L 4
-#define ARMV7L 4
-// CONSTANT AARCH64 5
-#define AARCH64 5
-// CONSTANT RISCV64 6
-#define RISCV64 6
+#define FALSE 0
+#define TRUE 1
 
 
 int in_set(int c, char* s);

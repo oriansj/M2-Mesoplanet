@@ -32,15 +32,7 @@ struct token_list* globals_list;
 char* hold_string;
 int string_index;
 
-/* Our Target Architecture */
-int Architecture;
-int register_size;
-
 int MAX_STRING;
-struct type* integer;
-
-/* enable bootstrap-mode */
-int BOOTSTRAP_MODE;
 
 /* enable preprocessor-only mode */
 int PREPROCESSOR_MODE;
