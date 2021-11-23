@@ -33,10 +33,16 @@ extern char* hold_string;
 extern int string_index;
 
 /* Allow us to have a single settable max string */
-extern int MAX_STRING;
+extern long MAX_STRING;
 
 /* enable preprocessor-only mode */
 extern int PREPROCESSOR_MODE;
 
 /* enable spawn behavior to be effective */
+extern char* PATH;
 extern char* M2LIBC_PATH;
+extern char* Architecture;
+extern int WORDSIZE;
+
+/* So we don't shoot ourself in the face */
+extern int FUZZING;

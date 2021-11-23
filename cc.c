@@ -15,9 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with M2-Planet.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+
 #include"cc.h"
 
 /* The core functions */
@@ -37,12 +35,15 @@ void init_macro_env(char* sym, char* value, char* source, int num);
 void preprocess();
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
+void spawn_processes(int debug_flag, char* preprocessed_file, char* destination, char** envp);
 
 int main(int argc, char** argv, char** envp)
 {
+	FUZZING = FALSE;
 	MAX_STRING = 4096;
 	PREPROCESSOR_MODE = FALSE;
 	FILE* in = stdin;
+	FILE* tempfile;
 	FILE* destination_file = stdout;
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
@@ -121,6 +122,12 @@ int main(int argc, char** argv, char** envp)
 			fputs("M2-Mesoplanet v1.10.0\n", stderr);
 			exit(EXIT_SUCCESS);
 		}
+		else if(match(argv[i], "--fuzz"))
+		{
+			/* Set fuzzing */
+			FUZZING = TRUE;
+			i += 1;
+		}
 		else
 		{
 			fputs("UNKNOWN ARGUMENT\n", stdout);
@@ -165,8 +172,19 @@ int main(int argc, char** argv, char** envp)
 	}
 	else
 	{
-		/* TODO Put tempfile and spawning info here */
-		output_tokens(global_token, destination_file);
+		char* filename = calloc(100, sizeof(char));
+		strcpy(filename, "/tmp/M2-Mesoplanet-XXXXXX");
+		i = mkstemp(filename);
+		tempfile = fdopen(i, "rw");
+		if(NULL != tempfile)
+		{
+			output_tokens(global_token, tempfile);
+		}
+		else
+		{
+			fputs("unable to get a tempfile for M2-Mesoplanet output\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 	}
 	return EXIT_SUCCESS;
 }

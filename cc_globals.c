@@ -38,4 +38,8 @@ int MAX_STRING;
 int PREPROCESSOR_MODE;
 
 /* enable spawn behavior to be effective */
+char* PATH;
 char* M2LIBC_PATH;
+
+/* So we don't shoot ourself in the face */
+int FUZZING;

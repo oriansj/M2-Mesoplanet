@@ -22,6 +22,9 @@
 void init_macro_env(char* sym, char* value, char* source, int num);
 char* env_lookup(char* variable);
 
+char* Architecture;
+int WORDSIZE;
+
 void setup_env()
 {
 	char* ARCH = NULL;
@@ -41,24 +44,35 @@ void setup_env()
 	if(NULL != hold) ARCH = hold;
 
 	/* Set desired architecture */
-	if(match("x86", ARCH))
+	WORDSIZE = 32;
+	if(match("knight-native", ARCH)) Architecture = "knight-native";
+	else if(match("knight-posix", ARCH)) Architecture = "knight-posix";
+	else if(match("x86", ARCH))
 	{
+		Architecture = "x86";
 		init_macro_env("__i386__", "1", "--architecture", 0);
 	}
 	else if(match("amd64", ARCH))
 	{
+		Architecture = "amd64";
+		WORDSIZE = 64;
 		init_macro_env("__x86_64__", "1", "--architecture", 0);
 	}
 	else if(match("armv7l", ARCH))
 	{
+		Architecture = "armv7l";
 		init_macro_env("__arm__", "1", "--architecture", 0);
 	}
 	else if(match("aarch64", ARCH))
 	{
+		Architecture = "aarch64";
+		WORDSIZE = 64;
 		init_macro_env("__aarch64__", "1", "--architecture", 0);
 	}
 	else if(match("riscv64", ARCH))
 	{
+		Architecture = "riscv64";
+		WORDSIZE = 64;
 		init_macro_env("__riscv", "1", "--architecture", 0);
 		init_macro_env("__riscv_xlen", "64", "--architecture", 1);
 	}
