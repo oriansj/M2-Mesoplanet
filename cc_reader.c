@@ -28,12 +28,7 @@ int grab_byte()
 {
 	int c = fgetc(input);
 	if(10 == c) line = line + 1;
-	return c;
-}
-
-int clearWhiteSpace(int c)
-{
-	if((32 == c) || (9 == c)) return clearWhiteSpace(grab_byte());
+	if(9 == c) c = ' ';
 	return c;
 }
 
@@ -162,13 +157,17 @@ struct token_list* remove_line_comments(struct token_list* head)
 	return first;
 }
 
-struct token_list* remove_line_comment_tokens(struct token_list* head)
+struct token_list* remove_comments(struct token_list* head)
 {
 	struct token_list* first = NULL;
 
 	while (NULL != head)
 	{
 		if(match("//", head->s))
+		{
+			head = eat_token(head);
+		}
+		else if('/' == head->s[0] && '*' == head->s[1])
 		{
 			head = eat_token(head);
 		}
@@ -208,21 +207,22 @@ struct token_list* remove_preprocessor_directives(struct token_list* head)
 	return first;
 }
 
-
 int get_token(int c)
 {
 	struct token_list* current = calloc(1, sizeof(struct token_list));
 	require(NULL != current, "Exhausted memory while getting token\n");
 
-reset:
 	reset_hold_string();
 	string_index = 0;
 
-	c = clearWhiteSpace(c);
 	if(c == EOF)
 	{
 		free(current);
 		return c;
+	}
+	else if((32 == c) || (9 == c) || (c == '\n'))
+	{
+		c = consume_byte(c);
 	}
 	else if('#' == c)
 	{
@@ -251,19 +251,18 @@ reset:
 		c = consume_byte(c);
 		if(c == '*')
 		{
-			c = grab_byte();
+			c = consume_byte(c);
 			while(c != '/')
 			{
 				while(c != '*')
 				{
-					c = grab_byte();
+					c = consume_byte(c);
 					require(EOF != c, "Hit EOF inside of block comment\n");
 				}
-				c = grab_byte();
+				c = consume_byte(c);
 				require(EOF != c, "Hit EOF inside of block comment\n");
 			}
-			c = grab_byte();
-			goto reset;
+			c = consume_byte(c);
 		}
 		else if(c == '/')
 		{
@@ -273,10 +272,6 @@ reset:
 		{
 			c = consume_byte(c);
 		}
-	}
-	else if (c == '\n')
-	{
-		c = consume_byte(c);
 	}
 	else if(c == '*')
 	{

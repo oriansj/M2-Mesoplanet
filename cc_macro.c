@@ -64,12 +64,14 @@ void eat_current_token()
 		update_global_token = TRUE;
 
 	macro_token = eat_token(macro_token);
+	while (macro_token->s[0] == ' ')
+		macro_token = eat_token(macro_token);
 
 	if(update_global_token)
 		global_token = macro_token;
 }
 
-void eat_newline_tokens()
+void remove_whitespace()
 {
 	macro_token = global_token;
 
@@ -77,7 +79,7 @@ void eat_newline_tokens()
 	{
 		if(NULL == macro_token) return;
 
-		if(match("\n", macro_token->s))
+		if(match(" ", macro_token->s) || match("\t", macro_token->s))
 		{
 			eat_current_token();
 		}

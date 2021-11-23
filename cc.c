@@ -27,8 +27,8 @@ void initialize_types();
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
 struct token_list* reverse_list(struct token_list* head);
 
-struct token_list* remove_line_comments(struct token_list* head);
-struct token_list* remove_line_comment_tokens(struct token_list* head);
+struct token_list* remove_comments(struct token_list* head);
+void remove_whitespace();
 struct token_list* remove_preprocessor_directives(struct token_list* head);
 
 void eat_newline_tokens();
@@ -161,7 +161,7 @@ int main(int argc, char** argv, char** envp)
 	}
 	global_token = reverse_list(global_token);
 
-	global_token = remove_line_comments(global_token);
+	global_token = remove_comments(global_token);
 
 	/* Get the environmental bits */
 	populate_env(envp);
@@ -170,6 +170,7 @@ int main(int argc, char** argv, char** envp)
 	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
 
 	preprocess();
+	remove_whitespace();
 
 	if(PREPROCESSOR_MODE)
 	{
