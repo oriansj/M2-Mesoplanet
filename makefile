@@ -25,13 +25,14 @@ CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb
 
 all: M2-Mesoplanet
 
-M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc.c cc_globals.c cc_globals.h
+M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
 	$(CC) $(CFLAGS) \
 	M2libc/bootstrappable.c \
 	cc_reader.c \
 	cc_core.c \
 	cc_macro.c \
 	cc_env.c \
+	cc_spawn.c \
 	cc.c \
 	cc.h \
 	cc_globals.c \

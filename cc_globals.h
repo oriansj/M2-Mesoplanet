@@ -39,7 +39,6 @@ extern long MAX_STRING;
 extern int PREPROCESSOR_MODE;
 
 /* enable spawn behavior to be effective */
-extern char* PATH;
 extern char* M2LIBC_PATH;
 extern char* Architecture;
 extern int WORDSIZE;

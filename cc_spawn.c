@@ -47,6 +47,8 @@ char* find_char(char* string, char a)
 /* Find the full path to an executable */
 char* find_executable(char* name)
 {
+	char* PATH = env_lookup("PATH");
+	require(NULL != PATH, "No PATH found\nAborting\n");
 	if(match("", name))
 	{
 		return NULL;
@@ -186,12 +188,13 @@ int spawn_hex2(char* input, char* output, char* architecture, char** envp, int d
 {
 	/* TODO FINISH */
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "--file");
-	insert_array(array, 1, input);
-	insert_array(array, 2, "--output");
-	insert_array(array, 3, output);
-	insert_array(array, 4, "--architecture");
-	insert_array(array, 5, architecture);
+	insert_array(array, 0, "hex2");
+	insert_array(array, 1, "--file");
+	insert_array(array, 2, input);
+	insert_array(array, 3, "--output");
+	insert_array(array, 4, output);
+	insert_array(array, 5, "--architecture");
+	insert_array(array, 6, architecture);
 	int r = _execute("hex2", array, envp);
 	return r;
 }
@@ -200,23 +203,24 @@ int spawn_hex2(char* input, char* output, char* architecture, char** envp, int d
 int spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
 {
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "--file");
-	insert_array(array, 1, input);
+	insert_array(array, 0, "M1");
+	insert_array(array, 1, "--file");
+	insert_array(array, 2, input);
 	if(debug_flag)
 	{
-		insert_array(array, 2, "--file");
-		insert_array(array, 3, debug_file);
-		insert_array(array, 4, "--output");
-		insert_array(array, 5, output);
-		insert_array(array, 6, "--architecture");
-		insert_array(array, 7, architecture);
+		insert_array(array, 3, "--file");
+		insert_array(array, 4, debug_file);
+		insert_array(array, 5, "--output");
+		insert_array(array, 6, output);
+		insert_array(array, 7, "--architecture");
+		insert_array(array, 8, architecture);
 	}
 	else
 	{
-		insert_array(array, 2, "--output");
-		insert_array(array, 3, output);
-		insert_array(array, 4, "--architecture");
-		insert_array(array, 5, architecture);
+		insert_array(array, 3, "--output");
+		insert_array(array, 4, output);
+		insert_array(array, 5, "--architecture");
+		insert_array(array, 6, architecture);
 	}
 	int r = _execute("M1", array, envp);
 	return r;
@@ -226,13 +230,14 @@ int spawn_M1(char* input, char* debug_file, char* output, char* architecture, ch
 int spawn_blood_elf(char* input, char* output, char* architecture, char** envp, int large_flag)
 {
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "--file");
-	insert_array(array, 1, input);
-	insert_array(array, 2, "--output");
-	insert_array(array, 3, output);
-	insert_array(array, 4, "--architecture");
-	insert_array(array, 5, architecture);
-	if(large_flag) insert_array(array, 6, "--64");
+	insert_array(array, 0, "blood-elf");
+	insert_array(array, 1, "--file");
+	insert_array(array, 2, input);
+	insert_array(array, 3, "--output");
+	insert_array(array, 4, output);
+	insert_array(array, 5, "--architecture");
+	insert_array(array, 6, architecture);
+	if(large_flag) insert_array(array, 7, "--64");
 	int r = _execute("blood-elf", array, envp);
 	return r;
 }
@@ -240,13 +245,14 @@ int spawn_blood_elf(char* input, char* output, char* architecture, char** envp, 
 int spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
 {
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "--file");
-	insert_array(array, 1, input);
-	insert_array(array, 2, "--output");
-	insert_array(array, 3, output);
-	insert_array(array, 4, "--architecture");
-	insert_array(array, 5, architecture);
-	if(debug_flag) insert_array(array, 6, "--debug");
+	insert_array(array, 0, "M2-Planet");
+	insert_array(array, 1, "--file");
+	insert_array(array, 2, input);
+	insert_array(array, 3, "--output");
+	insert_array(array, 4, output);
+	insert_array(array, 5, "--architecture");
+	insert_array(array, 6, architecture);
+	if(debug_flag) insert_array(array, 7, "--debug");
 	int r = _execute("M2-Planet", array, envp);
 	return r;
 }

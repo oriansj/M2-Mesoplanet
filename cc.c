@@ -42,8 +42,10 @@ int main(int argc, char** argv, char** envp)
 	FUZZING = FALSE;
 	MAX_STRING = 4096;
 	PREPROCESSOR_MODE = FALSE;
+	int debug_flag = TRUE;
 	FILE* in = stdin;
 	FILE* tempfile;
+	char* destination_name = "/dev/stdout";
 	FILE* destination_file = stdout;
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
@@ -172,13 +174,21 @@ int main(int argc, char** argv, char** envp)
 	}
 	else
 	{
-		char* filename = calloc(100, sizeof(char));
-		strcpy(filename, "/tmp/M2-Mesoplanet-XXXXXX");
-		i = mkstemp(filename);
-		tempfile = fdopen(i, "rw");
+		name = calloc(100, sizeof(char));
+		strcpy(name, "/tmp/M2-Mesoplanet-XXXXXX");
+		i = mkstemp(name);
+		tempfile = fdopen(i, "w+");
 		if(NULL != tempfile)
 		{
+			/* Our preprocessed crap */
 			output_tokens(global_token, tempfile);
+			fclose(tempfile);
+
+			/* Make me a real binary */
+			spawn_processes(debug_flag, name, destination_name, envp);
+
+			/* And clean up the donkey */
+			remove(name);
 		}
 		else
 		{
