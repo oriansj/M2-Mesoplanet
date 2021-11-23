@@ -1,5 +1,6 @@
-/* Copyright (C) 2016 Jeremiah Orians
+/* Copyright (C) 2016, 2021 Jeremiah Orians
  * Copyright (C) 2020 deesix <deesix@tuta.io>
+ * Copyright (C) 2020 Gabriel Wicki
  * This file is part of M2-Planet.
  *
  * M2-Planet is free software: you can redistribute it and/or modify
@@ -118,7 +119,7 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			fputs(" -f input file\n -o output file\n --help for this message\n --version for file version\n", stdout);
+			fputs(" -f input file\n -o output file\n --help for this message\n --version for file version\n-E or --preprocess-only\n--max-string N (N is a number)\n--fuzz\n--no-debug\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
