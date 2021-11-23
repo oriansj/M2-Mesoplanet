@@ -39,6 +39,11 @@ int PREPROCESSOR_MODE;
 
 /* enable spawn behavior to be effective */
 char* M2LIBC_PATH;
+char* Architecture;
+int WORDSIZE;
+int ENDIAN;
+char* BASEADDRESS;
+int STDIO_USED;
 
 /* So we don't shoot ourself in the face */
 int FUZZING;

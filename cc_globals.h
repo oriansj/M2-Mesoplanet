@@ -42,6 +42,9 @@ extern int PREPROCESSOR_MODE;
 extern char* M2LIBC_PATH;
 extern char* Architecture;
 extern int WORDSIZE;
+extern int ENDIAN;
+extern char* BASEADDRESS;
+extern int STDIO_USED;
 
 /* So we don't shoot ourself in the face */
 extern int FUZZING;

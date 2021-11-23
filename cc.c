@@ -42,6 +42,7 @@ int main(int argc, char** argv, char** envp)
 	FUZZING = FALSE;
 	MAX_STRING = 4096;
 	PREPROCESSOR_MODE = FALSE;
+	STDIO_USED = FALSE;
 	int debug_flag = TRUE;
 	FILE* in = stdin;
 	FILE* tempfile;
@@ -92,7 +93,8 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
-			destination_file = fopen(argv[i + 1], "w");
+			destination_name = argv[i + 1];
+			destination_file = fopen(destination_name, "w");
 			if(NULL == destination_file)
 			{
 				fputs("Unable to open for writing file: ", stderr);

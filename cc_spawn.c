@@ -120,6 +120,20 @@ char* find_executable(char* name)
 	return NULL;
 }
 
+void sanity_command_check(char** array)
+{
+	int i = 0;
+	char* s = array[0];
+	while(NULL != s)
+	{
+		fputs(s, stderr);
+		fputc(' ', stderr);
+		i = i + 1;
+		s = array[i];
+	}
+	fputc('\n', stderr);
+}
+
 int _execute(char* name, char** array, char** envp)
 {
 	int status; /* i.e. return code */
@@ -134,6 +148,8 @@ int _execute(char* name, char** array, char** envp)
 		fputs(" NOT FOUND!\nABORTING HARD\n", stderr);
 		exit(EXIT_FAILURE);
 	}
+
+	sanity_command_check(array);
 
 	int f = fork();
 
@@ -186,15 +202,42 @@ void insert_array(char** array, int index, char* string)
 
 int spawn_hex2(char* input, char* output, char* architecture, char** envp, int debug)
 {
-	/* TODO FINISH */
+	char* elf_header = calloc(MAX_STRING, sizeof(char));
+	elf_header = strcat(elf_header, M2LIBC_PATH);
+	elf_header = strcat(elf_header, "/");
+	elf_header = strcat(elf_header, architecture);
+	elf_header = strcat(elf_header, "/ELF-");
+	elf_header = strcat(elf_header, architecture);
+	if(debug)
+	{
+		elf_header = strcat(elf_header, "-debug.hex2");
+	}
+	else
+	{
+		elf_header = strcat(elf_header, ".hex2");
+	}
+
+	fputs("# starting hex2 linking\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
 	insert_array(array, 0, "hex2");
 	insert_array(array, 1, "--file");
-	insert_array(array, 2, input);
-	insert_array(array, 3, "--output");
-	insert_array(array, 4, output);
-	insert_array(array, 5, "--architecture");
-	insert_array(array, 6, architecture);
+	insert_array(array, 2, elf_header);
+	insert_array(array, 3, "--file");
+	insert_array(array, 4, input);
+	insert_array(array, 5, "--output");
+	insert_array(array, 6, output);
+	insert_array(array, 7, "--architecture");
+	insert_array(array, 8, architecture);
+	insert_array(array, 9, "--base-address");
+	insert_array(array, 10, BASEADDRESS);
+	if(ENDIAN)
+	{
+		insert_array(array, 11, "--big-endian");
+	}
+	else
+	{
+		insert_array(array, 11, "--little-endian");
+	}
 	int r = _execute("hex2", array, envp);
 	return r;
 }
@@ -202,48 +245,89 @@ int spawn_hex2(char* input, char* output, char* architecture, char** envp, int d
 
 int spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
 {
-	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "M1");
-	insert_array(array, 1, "--file");
-	insert_array(array, 2, input);
-	if(debug_flag)
+	fputs("# starting M1 assembly\n", stdout);
+	char* definitions = calloc(MAX_STRING, sizeof(char));
+	definitions = strcat(definitions, M2LIBC_PATH);
+	definitions = strcat(definitions, "/");
+	definitions = strcat(definitions, architecture);
+	definitions = strcat(definitions, "/");
+	definitions = strcat(definitions, architecture);
+	definitions = strcat(definitions, "_defs.M1");
+
+	char* libc = calloc(MAX_STRING, sizeof(char));
+	libc = strcat(libc, M2LIBC_PATH);
+	libc = strcat(libc, "/");
+	libc = strcat(libc, architecture);
+	if(STDIO_USED)
 	{
-		insert_array(array, 3, "--file");
-		insert_array(array, 4, debug_file);
-		insert_array(array, 5, "--output");
-		insert_array(array, 6, output);
-		insert_array(array, 7, "--architecture");
-		insert_array(array, 8, architecture);
+		libc = strcat(libc, "/libc-full.M1");
 	}
 	else
 	{
-		insert_array(array, 3, "--output");
-		insert_array(array, 4, output);
-		insert_array(array, 5, "--architecture");
-		insert_array(array, 6, architecture);
+		libc = strcat(libc, "/libc-core.M1");
+	}
+
+	char** array = calloc(MAX_ARRAY, sizeof(char*));
+	insert_array(array, 0, "M1");
+	insert_array(array, 1, "--file");
+	insert_array(array, 2, definitions);
+	insert_array(array, 3, "--file");
+	insert_array(array, 4, libc);
+	insert_array(array, 5, "--file");
+	insert_array(array, 6, input);
+	if(ENDIAN)
+	{
+		insert_array(array, 7, "--big-endian");
+	}
+	else
+	{
+		insert_array(array, 7, "--little-endian");
+	}
+	insert_array(array, 8, "--architecture");
+	insert_array(array, 9, architecture);
+
+	if(debug_flag)
+	{
+		insert_array(array, 10, "--file");
+		insert_array(array, 11, debug_file);
+		insert_array(array, 12, "--output");
+		insert_array(array, 13, output);
+	}
+	else
+	{
+		insert_array(array, 10, "--output");
+		insert_array(array, 11, output);
 	}
 	int r = _execute("M1", array, envp);
 	return r;
 }
 
 
-int spawn_blood_elf(char* input, char* output, char* architecture, char** envp, int large_flag)
+int spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 {
+	fputs("# starting Blood-elf stub generation\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
 	insert_array(array, 0, "blood-elf");
 	insert_array(array, 1, "--file");
 	insert_array(array, 2, input);
-	insert_array(array, 3, "--output");
-	insert_array(array, 4, output);
-	insert_array(array, 5, "--architecture");
-	insert_array(array, 6, architecture);
-	if(large_flag) insert_array(array, 7, "--64");
+	if(ENDIAN)
+	{
+		insert_array(array, 3, "--big-endian");
+	}
+	else
+	{
+		insert_array(array, 3, "--little-endian");
+	}
+	insert_array(array, 4, "--output");
+	insert_array(array, 5, output);
+	if(large_flag) insert_array(array, 6, "--64");
 	int r = _execute("blood-elf", array, envp);
 	return r;
 }
 
 int spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
 {
+	fputs("# starting M2-Planet build\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
 	insert_array(array, 0, "M2-Planet");
 	insert_array(array, 1, "--file");
@@ -267,7 +351,9 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	int i = mkstemp(M2_output);
 	if(-1 != i)
 	{
-		spawn_M2(preprocessed_file, M2_output, Architecture, envp, debug_flag);
+		close(i);
+		i = spawn_M2(preprocessed_file, M2_output, Architecture, envp, debug_flag);
+		if(0 != i) exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -283,7 +369,9 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 		i = mkstemp(blood_output);
 		if(-1 != i)
 		{
-			spawn_blood_elf(M2_output, blood_output, Architecture, envp, large_flag);
+			close(i);
+			i = spawn_blood_elf(M2_output, blood_output, envp, large_flag);
+			if(0 != i) exit(EXIT_FAILURE);
 		}
 		else
 		{
@@ -297,7 +385,9 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	i = mkstemp(M1_output);
 	if(-1 != i)
 	{
-		spawn_M1(M2_output, blood_output, M1_output, Architecture, envp, debug_flag);
+		close(i);
+		i = spawn_M1(M2_output, blood_output, M1_output, Architecture, envp, debug_flag);
+		if(0 != i) exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -311,7 +401,8 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	if(!match("", blood_output)) remove(blood_output);
 
 	/* Build the final binary */
-	spawn_hex2(M1_output, destination, Architecture, envp, debug_flag);
+	i = spawn_hex2(M1_output, destination, Architecture, envp, debug_flag);
+	if(0 != i) exit(EXIT_FAILURE);
 
 	/* clean up after ourselves*/
 	remove(M1_output);
