@@ -46,7 +46,7 @@ int main(int argc, char** argv, char** envp)
 	int debug_flag = TRUE;
 	FILE* in = stdin;
 	FILE* tempfile;
-	char* destination_name = "/dev/stdout";
+	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
@@ -174,11 +174,7 @@ int main(int argc, char** argv, char** envp)
 	{
 		fputs("\n/* Preprocessed source */\n", destination_file);
 		output_tokens(global_token, destination_file);
-
-		if (destination_file != stdout)
-		{
-			fclose(destination_file);
-		}
+		fclose(destination_file);
 	}
 	else
 	{

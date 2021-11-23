@@ -653,17 +653,32 @@ void macro_directive()
 	{
 		handle_error();
 	}
+	else if(match("#include", macro_token->s))
+	{
+		eat_current_token();
+		if(match("<", macro_token->s))
+		{
+			eat_current_token();
+			if(match("stdio", macro_token->s))
+			{
+				eat_current_token();
+				STDIO_USED = TRUE;
+			}
+			eat_current_token();
+			eat_current_token();
+			eat_current_token();
+		}
+		else
+		eat_current_token();
+	}
 	else
 	{
-		if(!match("#include", macro_token->s))
-		{
-			/* Put a big fat warning but see if we can just ignore */
-			fputs(">>WARNING<<\n>>WARNING<<\n", stderr);
-			line_error_token(macro_token);
-			fputs("feature: ", stderr);
-			fputs(macro_token->s, stderr);
-			fputs(" unsupported in M2-Planet\nIgnoring line, may result in bugs\n>>WARNING<<\n>>WARNING<<\n\n", stderr);
-		}
+		/* Put a big fat warning but see if we can just ignore */
+		fputs(">>WARNING<<\n>>WARNING<<\n", stderr);
+		line_error_token(macro_token);
+		fputs("feature: ", stderr);
+		fputs(macro_token->s, stderr);
+		fputs(" unsupported in M2-Planet\nIgnoring line, may result in bugs\n>>WARNING<<\n>>WARNING<<\n\n", stderr);
 
 		/* unhandled macro directive; let's eat until a newline; om nom nom */
 		while(TRUE)
