@@ -132,6 +132,12 @@ int main(int argc, char** argv, char** envp)
 			FUZZING = TRUE;
 			i += 1;
 		}
+		else if(match(argv[i], "--no-debug"))
+		{
+			/* strip things down */
+			debug_flag = FALSE;
+			i += 1;
+		}
 		else
 		{
 			fputs("UNKNOWN ARGUMENT\n", stdout);
