@@ -182,7 +182,7 @@ int main(int argc, char** argv, char** envp)
 		name = calloc(100, sizeof(char));
 		strcpy(name, "/tmp/M2-Mesoplanet-XXXXXX");
 		i = mkstemp(name);
-		tempfile = fdopen(i, "w+");
+		tempfile = fdopen(i, "w");
 		if(NULL != tempfile)
 		{
 			/* Our preprocessed crap */

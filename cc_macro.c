@@ -664,12 +664,21 @@ void macro_directive()
 				eat_current_token();
 				STDIO_USED = TRUE;
 			}
-			eat_current_token();
-			eat_current_token();
+		}
+		while(TRUE)
+		{
+			if(NULL == macro_token)
+			{
+				return;
+			}
+
+			if('\n' == macro_token->s[0])
+			{
+				return;
+			}
+
 			eat_current_token();
 		}
-		else
-		eat_current_token();
 	}
 	else
 	{
