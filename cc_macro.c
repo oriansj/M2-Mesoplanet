@@ -57,18 +57,31 @@ void init_macro_env(char* sym, char* value, char* source, int num)
 	macro_env->expansion->linenumber = num;
 }
 
-void eat_current_token()
+void _eat_current_token(int eat_whitespace)
 {
 	int update_global_token = FALSE;
 	if (macro_token == global_token)
 		update_global_token = TRUE;
 
 	macro_token = eat_token(macro_token);
-	while (macro_token->s[0] == ' ')
+	if(eat_whitespace)
+	{
+		while (macro_token->s[0] == ' ')
 		macro_token = eat_token(macro_token);
+	}
 
 	if(update_global_token)
 		global_token = macro_token;
+}
+
+void eat_current_token()
+{
+	_eat_current_token(TRUE);
+}
+
+void eat_current_token_without_space()
+{
+	_eat_current_token(FALSE);
 }
 
 void remove_whitespace()
@@ -500,7 +513,7 @@ void handle_define()
 	if(conditional_define) macro_env = hold;
 
 	/* discard the macro name */
-	eat_current_token();
+	eat_current_token_without_space();
 
 	/* Handle macro arguments */
 	if(macro_token->s[0] == '(')
@@ -533,6 +546,10 @@ void handle_define()
 		hold->arguments = reverse_list(hold->arguments);
 
 		require(NULL != macro_token, "got an EOF terminated #define\n");
+	}
+	else if(macro_token->s[0] == ' ')
+	{
+		eat_current_token();
 	}
 
 	while (TRUE)
@@ -602,7 +619,6 @@ void handle_error()
 			if ('\n' == macro_token->s[0]) break;
 			fputs(macro_token->s, stderr);
 			macro_token = macro_token->next;
-			fputs(" ", stderr);
 		}
 		fputs("\n", stderr);
 		exit(EXIT_FAILURE);
@@ -855,6 +871,10 @@ struct token_list* maybe_expand(struct token_list* token)
 	hold3 = hold->arguments;
 	if(NULL != hold3)
 	{
+		if(token->s[0] == ' ')
+		{
+			token = eat_token(token);
+		}
 		require('(' == token->s[0], "missing open parenthesis for macro function\n");
 		token = eat_token(token);
 		require(NULL != token, "got an EOF terminated macro function\n");
