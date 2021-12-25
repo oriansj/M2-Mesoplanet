@@ -568,7 +568,12 @@ void handle_define()
 			return;
 		}
 
-		require(NULL != hold, "#define got something it can't handle\n");
+		if(NULL == hold)
+		{
+			fputs("#define got something it can't handle\n", stderr);
+			line_error_token(macro_token);
+			exit(EXIT_FAILURE);
+		}
 
 		expansion_end = macro_token;
 
