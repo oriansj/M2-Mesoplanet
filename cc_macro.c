@@ -84,25 +84,6 @@ void eat_current_token_without_space()
 	_eat_current_token(FALSE);
 }
 
-void remove_whitespace()
-{
-	macro_token = global_token;
-
-	while(TRUE)
-	{
-		if(NULL == macro_token) return;
-
-		if(match(" ", macro_token->s) || match("\t", macro_token->s))
-		{
-			eat_current_token();
-		}
-		else
-		{
-			macro_token = macro_token->next;
-		}
-	}
-}
-
 struct token_list* lookup_token(struct token_list* token, struct token_list* arguments)
 {
 	char *s;
@@ -771,6 +752,23 @@ void macro_directive()
 				STDIO_USED = TRUE;
 			}
 		}
+		while(TRUE)
+		{
+			if(NULL == macro_token)
+			{
+				return;
+			}
+
+			if('\n' == macro_token->s[0])
+			{
+				return;
+			}
+
+			eat_current_token();
+		}
+	}
+	else if(match("#FILENAME", macro_token->s))
+	{
 		while(TRUE)
 		{
 			if(NULL == macro_token)

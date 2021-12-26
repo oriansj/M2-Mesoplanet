@@ -56,7 +56,6 @@ int grab_byte()
 {
 	int c = fgetc(input);
 	if(10 == c) line = line + 1;
-	if(9 == c) c = ' ';
 	return c;
 }
 
@@ -79,7 +78,8 @@ int preserve_string(int c)
 		c = consume_byte(c);
 		require(EOF != c, "Unterminated string\n");
 	} while(escape || (c != frequent));
-	return grab_byte();
+	c = consume_byte(frequent);
+	return c;
 }
 
 
@@ -95,20 +95,6 @@ void copy_string(char* target, char* source, int max)
 }
 
 
-void fixup_label()
-{
-	int hold = ':';
-	int prev;
-	int i = 0;
-	do
-	{
-		prev = hold;
-		hold = hold_string[i];
-		hold_string[i] = prev;
-		i = i + 1;
-	} while(0 != hold);
-}
-
 int preserve_keyword(int c, char* S)
 {
 	while(in_set(c, S))
@@ -120,12 +106,13 @@ int preserve_keyword(int c, char* S)
 
 void reset_hold_string()
 {
-	int i = string_index + 2;
+	int i = MAX_STRING;
 	while(0 <= i)
 	{
 		hold_string[i] = 0;
 		i = i - 1;
 	}
+	string_index = 0;
 }
 
 /* note if this is the first token in the list, head needs fixing up */
@@ -145,95 +132,6 @@ struct token_list* eat_token(struct token_list* token)
 	return token->next;
 }
 
-struct token_list* eat_until_newline(struct token_list* head)
-{
-	while (NULL != head)
-	{
-		if('\n' == head->s[0])
-		{
-			return head;
-		}
-		else
-		{
-			head = eat_token(head);
-		}
-	}
-
-	return NULL;
-}
-
-struct token_list* remove_line_comments(struct token_list* head)
-{
-	struct token_list* first = NULL;
-
-	while (NULL != head)
-	{
-		if(match("//", head->s))
-		{
-			head = eat_until_newline(head);
-		}
-		else
-		{
-			if(NULL == first)
-			{
-				first = head;
-			}
-			head = head->next;
-		}
-	}
-
-	return first;
-}
-
-struct token_list* remove_comments(struct token_list* head)
-{
-	struct token_list* first = NULL;
-
-	while (NULL != head)
-	{
-		if(match("//", head->s))
-		{
-			head = eat_token(head);
-		}
-		else if('/' == head->s[0] && '*' == head->s[1])
-		{
-			head = eat_token(head);
-		}
-		else
-		{
-			if(NULL == first)
-			{
-				first = head;
-			}
-			head = head->next;
-		}
-	}
-
-	return first;
-}
-
-struct token_list* remove_preprocessor_directives(struct token_list* head)
-{
-	struct token_list* first = NULL;
-
-	while (NULL != head)
-	{
-		if('#' == head->s[0])
-		{
-			head = eat_until_newline(head);
-		}
-		else
-		{
-			if(NULL == first)
-			{
-				first = head;
-			}
-			head = head->next;
-		}
-	}
-
-	return first;
-}
 
 void new_token(char* s, int size)
 {
@@ -255,7 +153,6 @@ void new_token(char* s, int size)
 int get_token(int c)
 {
 	reset_hold_string();
-	string_index = 0;
 
 	if(c == EOF)
 	{
@@ -272,12 +169,7 @@ int get_token(int c)
 	}
 	else if(in_set(c, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"))
 	{
-		c = preserve_keyword(c, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-		if(':' == c)
-		{
-			fixup_label();
-			c = ' ';
-		}
+		c = preserve_keyword(c, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:");
 	}
 	else if(in_set(c, "<=>|&!^%"))
 	{
@@ -307,6 +199,11 @@ int get_token(int c)
 		}
 		else if(c == '/')
 		{
+			while(c != '\n')
+			{
+				c = consume_byte(c);
+				require(EOF != c, "Hit EOF inside of line comment\n");
+			}
 			c = consume_byte(c);
 		}
 		else if(c == '=')
@@ -376,7 +273,6 @@ struct token_list* reverse_list(struct token_list* head)
 int read_include(int c)
 {
 	reset_hold_string();
-	string_index = 0;
 	int done = FALSE;
 	int ch;
 
@@ -410,13 +306,24 @@ int read_include(int c)
 	return c;
 }
 
+void insert_file_header(char* name, int line)
+{
+	char* hold_line = int2str(line, 10, FALSE);
+	reset_hold_string();
+	strcat(hold_string, "// #FILENAME ");
+	strcat(hold_string, name);
+	strcat(hold_string, " ");
+	strcat(hold_string, hold_line);
+	strcat(hold_string, "\n");
+	new_token(hold_string, strlen(hold_string)+2);
+}
+
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
 int include_file(int ch)
 {
 	/* The old state to restore to */
 	char* hold_filename = file;
 	FILE* hold_input = input;
-	char* hold_line;
 	int hold_number;
 
 	/* The new file to load */
@@ -429,7 +336,7 @@ int include_file(int ch)
 
 	/* Get new filename */
 	read_include(ch);
-	ch = ' ';
+	ch = '\n';
 	new_filename = token->s;
 	/* Remove name from stream */
 	token = token->next;
@@ -472,24 +379,14 @@ int include_file(int ch)
 		exit(EXIT_FAILURE);
 	}
 
-
-	/* Replace token */
-	new_token("//", 4);
-	new_token(" // #FILENAME", 11);
-	new_token(new_filename, strlen(new_filename) + 2);
-	new_token("1", 3);
-	new_token("\n", 3);
-	/* make sure to store return line number right after include */
-	hold_line = int2str(line + 1, 10, FALSE);
+	/* protect our current line number */
 	hold_number = line + 1;
+
+	/* Read the new file */
 	read_all_tokens(new_file, token, new_filename);
 
 	/* put back old file info */
-	new_token("//", 4);
-	new_token(" // #FILENAME", 11);
-	new_token(hold_filename, strlen(hold_filename)+2);
-	new_token(hold_line, strlen(hold_line)+2);
-	new_token("\n", 3);
+	insert_file_header(hold_filename, hold_number);
 
 	/* resume reading old file */
 	input = hold_input;
@@ -500,10 +397,11 @@ int include_file(int ch)
 
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename)
 {
+	token = current;
+	insert_file_header(filename, 1);
 	input  = a;
 	line = 1;
 	file = filename;
-	token = current;
 	int ch = grab_byte();
 	while(EOF != ch)
 	{

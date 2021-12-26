@@ -61,7 +61,6 @@ void output_tokens(struct token_list *i, FILE* out)
 	while(NULL != i)
 	{
 		fputs(i->s, out);
-		fputs(" ", out);
 		i = i->next;
 	}
 }

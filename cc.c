@@ -27,11 +27,6 @@ void initialize_types();
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
 struct token_list* reverse_list(struct token_list* head);
 
-struct token_list* remove_comments(struct token_list* head);
-void remove_whitespace();
-struct token_list* remove_preprocessor_directives(struct token_list* head);
-
-void eat_newline_tokens();
 void init_macro_env(char* sym, char* value, char* source, int num);
 void preprocess();
 void output_tokens(struct token_list *i, FILE* out);
@@ -52,6 +47,7 @@ int main(int argc, char** argv, char** envp)
 	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
 	char* hold;
+	int DUMP_MODE = FALSE;
 
 	int i = 1;
 	while(i <= argc)
@@ -64,6 +60,11 @@ int main(int argc, char** argv, char** envp)
 		{
 			PREPROCESSOR_MODE = TRUE;
 			i += 1;
+		}
+		else if(match(argv[i], "--dump-mode"))
+		{
+			DUMP_MODE = TRUE;
+			i+= 1;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
 		{
@@ -161,20 +162,23 @@ int main(int argc, char** argv, char** envp)
 	}
 	global_token = reverse_list(global_token);
 
-	global_token = remove_comments(global_token);
-
 	/* Get the environmental bits */
 	populate_env(envp);
 	setup_env(envp);
 	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
 	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
 
+	if(DUMP_MODE)
+	{
+		output_tokens(global_token, destination_file);
+		exit(EXIT_SUCCESS);
+	}
+
 	preprocess();
-	remove_whitespace();
 
 	if(PREPROCESSOR_MODE)
 	{
-		fputs("\n/* Preprocessed source */\n", destination_file);
+		fputs("/* M2-Mesoplanet Preprocessed source */\n", destination_file);
 		output_tokens(global_token, destination_file);
 		fclose(destination_file);
 	}
