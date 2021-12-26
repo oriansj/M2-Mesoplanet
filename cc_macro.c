@@ -551,9 +551,8 @@ void handle_define()
 
 		if(NULL == hold)
 		{
-			fputs("#define got something it can't handle\n", stderr);
-			line_error_token(macro_token);
-			exit(EXIT_FAILURE);
+			eat_current_token();
+			continue;
 		}
 
 		expansion_end = macro_token;
