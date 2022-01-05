@@ -739,33 +739,6 @@ void macro_directive()
 	{
 		handle_error();
 	}
-	else if(match("#include", macro_token->s))
-	{
-		eat_current_token();
-		if(match("<", macro_token->s))
-		{
-			eat_current_token();
-			if(match("stdio", macro_token->s))
-			{
-				eat_current_token();
-				STDIO_USED = TRUE;
-			}
-		}
-		while(TRUE)
-		{
-			if(NULL == macro_token)
-			{
-				return;
-			}
-
-			if('\n' == macro_token->s[0])
-			{
-				return;
-			}
-
-			eat_current_token();
-		}
-	}
 	else if(match("#FILENAME", macro_token->s))
 	{
 		while(TRUE)

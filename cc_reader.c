@@ -314,8 +314,8 @@ void insert_file_header(char* name, int line)
 	strcat(hold_string, name);
 	strcat(hold_string, " ");
 	strcat(hold_string, hold_line);
-	strcat(hold_string, "\n");
 	new_token(hold_string, strlen(hold_string)+2);
+	new_token("\n", 3);
 }
 
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
@@ -346,6 +346,7 @@ int include_file(int ch)
 	{
 		char* path = env_lookup("M2LIBC_PATH");
 		if(NULL == path) path = "./M2libc";
+		if(match("stdio.h", new_filename + 1)) STDIO_USED = TRUE;
 		reset_hold_string();
 		strcat(hold_string, path);
 		strcat(hold_string, "/");
