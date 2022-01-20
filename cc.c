@@ -36,7 +36,7 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 int main(int argc, char** argv, char** envp)
 {
 	FUZZING = FALSE;
-	MAX_STRING = 4096;
+	MAX_STRING = 65536;
 	PREPROCESSOR_MODE = FALSE;
 	STDIO_USED = FALSE;
 	int debug_flag = TRUE;
@@ -48,6 +48,7 @@ int main(int argc, char** argv, char** envp)
 	char* name;
 	char* hold;
 	int DUMP_MODE = FALSE;
+	int DIRTY_MODE = FALSE;
 
 	int i = 1;
 	while(i <= argc)
@@ -64,6 +65,11 @@ int main(int argc, char** argv, char** envp)
 		else if(match(argv[i], "--dump-mode"))
 		{
 			DUMP_MODE = TRUE;
+			i+= 1;
+		}
+		else if(match(argv[i], "--dirty-mode"))
+		{
+			DIRTY_MODE = TRUE;
 			i+= 1;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
@@ -198,7 +204,7 @@ int main(int argc, char** argv, char** envp)
 			spawn_processes(debug_flag, name, destination_name, envp);
 
 			/* And clean up the donkey */
-			remove(name);
+			if(!DIRTY_MODE) remove(name);
 		}
 		else
 		{
