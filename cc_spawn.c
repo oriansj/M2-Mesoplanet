@@ -396,14 +396,17 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	}
 
 	/* We no longer need the M2-Planet tempfile output */
-	remove(M2_output);
+	if(!DIRTY_MODE) remove(M2_output);
 	/* Nor the blood-elf output anymore if it exists */
-	if(!match("", blood_output)) remove(blood_output);
+	if(!match("", blood_output))
+	{
+		if(!DIRTY_MODE) remove(blood_output);
+	}
 
 	/* Build the final binary */
 	i = spawn_hex2(M1_output, destination, Architecture, envp, debug_flag);
 	if(0 != i) exit(EXIT_FAILURE);
 
 	/* clean up after ourselves*/
-	remove(M1_output);
+	if(!DIRTY_MODE) remove(M1_output);
 }

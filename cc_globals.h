@@ -48,3 +48,5 @@ extern int STDIO_USED;
 
 /* So we don't shoot ourself in the face */
 extern int FUZZING;
+extern int DIRTY_MODE;
+extern int DEBUG_LEVEL;

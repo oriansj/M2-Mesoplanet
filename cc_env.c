@@ -24,9 +24,19 @@ char* env_lookup(char* variable);
 
 void setup_env()
 {
+	if(2 <= DEBUG_LEVEL) fputs("Starting setup_env\n", stderr);
 	char* ARCH = NULL;
 	struct utsname* unameData = calloc(1, sizeof(struct utsname));
+	require(NULL != unameData, "unameData calloc failed\n");
 	uname(unameData);
+	if(3 <= DEBUG_LEVEL) fputs("obtained architecture details\n", stderr);
+	if(4 <= DEBUG_LEVEL)
+	{
+		fputs("utsname details: ", stderr);
+		fputs(unameData->machine, stderr);
+		fputc('\n', stderr);
+	}
+
 	if(match("i386", unameData->machine) ||
 	   match("i486", unameData->machine) ||
 	   match("i586", unameData->machine) ||
@@ -34,11 +44,18 @@ void setup_env()
 	   match("i686-pae", unameData->machine)) ARCH = "x86";
 	else if(match("x86_64", unameData->machine)) ARCH = "amd64";
 	else ARCH = unameData->machine;
+	if(3 <= DEBUG_LEVEL)
+	{
+		fputs("Architecture selected: ", stderr);
+		fputs(ARCH, stderr);
+		fputc('\n', stderr);
+	}
 
 
 	/* Check for override */
 	char* hold = env_lookup("ARCHITECTURE_OVERRIDE");
 	if(NULL != hold) ARCH = hold;
+	if(3 <= DEBUG_LEVEL) fputs("override?\n", stderr);
 
 	/* Set desired architecture */
 	WORDSIZE = 32;
@@ -95,6 +112,7 @@ void setup_env()
 		fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64 and riscv64\n", stderr);
 		exit(EXIT_FAILURE);
 	}
+	if(2 <= DEBUG_LEVEL) fputs("setup_env successful\n", stderr);
 }
 
 struct Token
@@ -161,9 +179,11 @@ char* env_lookup(char* variable)
 
 void populate_env(char** envp)
 {
+	if(2 <= DEBUG_LEVEL) fputs("populate_env started\n", stderr);
 	/* You can't populate a NULL environment */
 	if(NULL == envp)
 	{
+		if(3 <= DEBUG_LEVEL) fputs("NULL envp\n", stderr);
 		return;
 	}
 
@@ -172,6 +192,7 @@ void populate_env(char** envp)
 
 	if(0 == max)
 	{
+		if(3 <= DEBUG_LEVEL) fputs("Empty envp\n", stderr);
 		return;
 	}
 
@@ -185,6 +206,7 @@ void populate_env(char** envp)
 	int k;
 	char* envp_line;
 
+	if(3 <= DEBUG_LEVEL) fputs("starting env loop\n", stderr);
 	for(i = 0; i < max; i = i + 1)
 	{
 		n->var = calloc(MAX_STRING, sizeof(char));
@@ -237,16 +259,20 @@ void populate_env(char** envp)
 		require(n->next != NULL, "Memory initialization of n->next in population of env failed\n");
 		n = n->next;
 	}
+	if(3 <= DEBUG_LEVEL) fputs("env loop successful\n", stderr);
 
 	/* Get rid of node on the end */
 	n = NULL;
 	/* Also destroy the n->next reference */
 	n = env;
 
+	require(NULL != n, "can't have an empty environment from the creation of a non-null environment\n");
+	require(NULL != n->next, "should have an extra node at the end of the env\n");
 	while(n->next->var != NULL)
 	{
 		n = n->next;
 	}
 
 	n->next = NULL;
+	if(2 <= DEBUG_LEVEL) fputs("populate_env successful\n", stderr);
 }

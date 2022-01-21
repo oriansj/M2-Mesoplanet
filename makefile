@@ -22,6 +22,10 @@ PACKAGE = m2-mesoplanet
 # C compiler settings
 CC?=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb
+ARCH:=$(shell get_machine)
+BLOOD_FLAG:=$(shell get_machine --blood)
+ENDIAN_FLAG:=$(shell get_machine --endian)
+BASE_ADDRESS:=$(shell get_machine --hex2)
 
 all: M2-Mesoplanet
 
@@ -39,11 +43,59 @@ M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spa
 	gcc_req.h \
 	-o bin/M2-Mesoplanet
 
+M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
+	echo $(ARCH)
+	echo $(BLOOD_FLAG)
+	echo $(ENDIAN_FLAG)
+	echo $(BASE_ADDRESS)
+	M2-Planet --architecture ${ARCH} \
+	-f M2libc/sys/types.h \
+	-f M2libc/stddef.h \
+	-f M2libc/${ARCH}/linux/fcntl.c \
+	-f M2libc/${ARCH}/linux/unistd.c \
+	-f M2libc/${ARCH}/linux/sys/stat.c \
+	-f M2libc/stdlib.c \
+	-f M2libc/stdio.c \
+	-f M2libc/string.c \
+	-f M2libc/bootstrappable.c \
+	-f cc.h \
+	-f cc_globals.c \
+	-f cc_env.c \
+	-f cc_reader.c \
+	-f cc_spawn.c \
+	-f cc_core.c \
+	-f cc_macro.c \
+	-f cc.c \
+	--debug \
+	-o ./bin/M2-Mesoplanet-1.M1
+	blood-elf ${ENDIAN_FLAG} ${BLOOD_FLAG} -f ./bin/M2-Mesoplanet-1.M1 -o ./bin/M2-Mesoplanet-1-footer.M1
+	M1 --architecture ${ARCH} \
+	${ENDIAN_FLAG} \
+	-f M2libc/${ARCH}/${ARCH}_defs.M1 \
+	-f M2libc/${ARCH}/libc-full.M1 \
+	-f ./bin/M2-Mesoplanet-1.M1 \
+	-f ./bin/M2-Mesoplanet-1-footer.M1 \
+	-o ./bin/M2-Mesoplanet-1.hex2
+	hex2 --architecture ${ARCH} \
+	${ENDIAN_FLAG} \
+	--base-address ${BASE_ADDRESS} \
+	-f ../M2libc/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f ./bin/M2-Mesoplanet-1.hex2 \
+	-o ./bin/M2-Mesoplanet
+
+
 # Clean up after ourselves
 .PHONY: clean
 clean:
 	rm -rf bin/
 #	./test/test0000/cleanup.sh
+
+.PHONY: clean-temp
+clean-tmp:
+	rm -vf /tmp/M2-Mesoplanet-*
+	rm -vf /tmp/M2-Planet-*
+	rm -vf /tmp/M1-macro-*
+	rm -vf /tmp/blood-elf-*
 
 # Directories
 bin:

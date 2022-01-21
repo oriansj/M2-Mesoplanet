@@ -47,3 +47,5 @@ int STDIO_USED;
 
 /* So we don't shoot ourself in the face */
 int FUZZING;
+int DIRTY_MODE;
+int DEBUG_LEVEL;

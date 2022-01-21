@@ -48,7 +48,10 @@ int main(int argc, char** argv, char** envp)
 	char* name;
 	char* hold;
 	int DUMP_MODE = FALSE;
-	int DIRTY_MODE = FALSE;
+	DIRTY_MODE = FALSE;
+
+	/* Assume no debugging by default */
+	DEBUG_LEVEL = 0;
 
 	int i = 1;
 	while(i <= argc)
@@ -71,6 +74,15 @@ int main(int argc, char** argv, char** envp)
 		{
 			DIRTY_MODE = TRUE;
 			i+= 1;
+		}
+		else if(match(argv[i], "--debug-mode"))
+		{
+			hold = argv[i+1];
+			DEBUG_LEVEL = strtoint(hold);
+			fputs("DEBUG_LEVEL set to: ", stderr);
+			fputs(hold, stderr);
+			fputc('\n', stderr);
+			i+= 2;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
 		{
@@ -153,6 +165,8 @@ int main(int argc, char** argv, char** envp)
 		}
 	}
 
+	if(1 <= DEBUG_LEVEL) fputs("READ all files\n", stderr);
+
 	/* Deal with special case of wanting to read from standard input */
 	if(stdin == in)
 	{
@@ -166,13 +180,18 @@ int main(int argc, char** argv, char** envp)
 		fputs("Either no input files were given or they were empty\n", stderr);
 		exit(EXIT_FAILURE);
 	}
+
+	if(1 <= DEBUG_LEVEL) fputs("Start to reverse list\n", stderr);
 	global_token = reverse_list(global_token);
+	if(1 <= DEBUG_LEVEL) fputs("List reversed\n", stderr);
 
 	/* Get the environmental bits */
+	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
 	populate_env(envp);
 	setup_env(envp);
 	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
 	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
+	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
 
 	if(DUMP_MODE)
 	{
