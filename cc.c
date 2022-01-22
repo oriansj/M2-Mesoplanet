@@ -21,7 +21,7 @@
 
 /* The core functions */
 void populate_env(char** envp);
-void setup_env(char** envp);
+void setup_env();
 char* env_lookup(char* variable);
 void initialize_types();
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
@@ -188,7 +188,7 @@ int main(int argc, char** argv, char** envp)
 	/* Get the environmental bits */
 	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
 	populate_env(envp);
-	setup_env(envp);
+	setup_env();
 	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
 	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
 	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
