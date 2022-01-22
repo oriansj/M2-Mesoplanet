@@ -90,7 +90,7 @@ clean:
 	rm -rf bin/
 #	./test/test0000/cleanup.sh
 
-.PHONY: clean-temp
+.PHONY: clean-tmp
 clean-tmp:
 	rm -vf /tmp/M2-Mesoplanet-*
 	rm -vf /tmp/M2-Planet-*

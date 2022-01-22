@@ -173,6 +173,9 @@ int _execute(char* name, char** array, char** envp)
 			/* We are not fuzzing */
 			/* execve() returns only on error */
 			execve(program, array, envp);
+			fputs("Unable to execute: ", stderr);
+			fputs(program, stderr);
+			fputs("\nPlease check file permissions and that it is a valid binary\n", stderr);
 		}
 
 		/* Prevent infinite loops */
