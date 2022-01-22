@@ -134,7 +134,7 @@ void sanity_command_check(char** array)
 	fputc('\n', stderr);
 }
 
-int _execute(char* name, char** array, char** envp)
+void _execute(char* name, char** array, char** envp)
 {
 	int status; /* i.e. return code */
 	/* Get the full path to the executable */
@@ -185,14 +185,24 @@ int _execute(char* name, char** array, char** envp)
 	/* Otherwise we are the parent */
 	/* And we should wait for it to complete */
 	waitpid(f, &status, 0);
-	if((status & 0x7f) != 0)
+
+	/***********************************************************************************
+	 * The bottom 8 bits are for TERMSIG values such as if the program crashed or etc  *
+	 * the second 8 bits are for the EXITSTATUS of the program that we waited for      *
+	 ***********************************************************************************/
+	if(status != 0)
 	{
 		fputs("Subprocess: ", stderr);
-		fputs(name, stderr);
+		fputs(program, stderr);
+		if((status & 0x7f) != 0)
+		{
+			fputs(" aborted (or crashed)\nAborting for safety\n", stderr);
+			exit(status & 0x7f);
+		}
+
 		fputs(" exited with error code\nAborting for safety\n", stderr);
-		exit(status & 0x7f);
+		exit((status & 0xff00) >> 8);
 	}
-	return (status & 0xff00) >> 8;
 }
 
 void insert_array(char** array, int index, char* string)
@@ -203,7 +213,7 @@ void insert_array(char** array, int index, char* string)
 }
 
 
-int spawn_hex2(char* input, char* output, char* architecture, char** envp, int debug)
+void spawn_hex2(char* input, char* output, char* architecture, char** envp, int debug)
 {
 	char* elf_header = calloc(MAX_STRING, sizeof(char));
 	elf_header = strcat(elf_header, M2LIBC_PATH);
@@ -241,12 +251,11 @@ int spawn_hex2(char* input, char* output, char* architecture, char** envp, int d
 	{
 		insert_array(array, 11, "--little-endian");
 	}
-	int r = _execute("hex2", array, envp);
-	return r;
+	_execute("hex2", array, envp);
 }
 
 
-int spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
+void spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
 {
 	fputs("# starting M1 assembly\n", stdout);
 	char* definitions = calloc(MAX_STRING, sizeof(char));
@@ -301,12 +310,11 @@ int spawn_M1(char* input, char* debug_file, char* output, char* architecture, ch
 		insert_array(array, 10, "--output");
 		insert_array(array, 11, output);
 	}
-	int r = _execute("M1", array, envp);
-	return r;
+	_execute("M1", array, envp);
 }
 
 
-int spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
+void spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 {
 	fputs("# starting Blood-elf stub generation\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
@@ -324,11 +332,10 @@ int spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 	insert_array(array, 4, "--output");
 	insert_array(array, 5, output);
 	if(large_flag) insert_array(array, 6, "--64");
-	int r = _execute("blood-elf", array, envp);
-	return r;
+	_execute("blood-elf", array, envp);
 }
 
-int spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
+void spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
 {
 	fputs("# starting M2-Planet build\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
@@ -340,8 +347,7 @@ int spawn_M2(char* input, char* output, char* architecture, char** envp, int deb
 	insert_array(array, 5, "--architecture");
 	insert_array(array, 6, architecture);
 	if(debug_flag) insert_array(array, 7, "--debug");
-	int r = _execute("M2-Planet", array, envp);
-	return r;
+	_execute("M2-Planet", array, envp);
 }
 
 void spawn_processes(int debug_flag, char* preprocessed_file, char* destination, char** envp)
@@ -355,8 +361,7 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	if(-1 != i)
 	{
 		close(i);
-		i = spawn_M2(preprocessed_file, M2_output, Architecture, envp, debug_flag);
-		if(0 != i) exit(EXIT_FAILURE);
+		spawn_M2(preprocessed_file, M2_output, Architecture, envp, debug_flag);
 	}
 	else
 	{
@@ -373,8 +378,7 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 		if(-1 != i)
 		{
 			close(i);
-			i = spawn_blood_elf(M2_output, blood_output, envp, large_flag);
-			if(0 != i) exit(EXIT_FAILURE);
+			spawn_blood_elf(M2_output, blood_output, envp, large_flag);
 		}
 		else
 		{
@@ -389,8 +393,7 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	if(-1 != i)
 	{
 		close(i);
-		i = spawn_M1(M2_output, blood_output, M1_output, Architecture, envp, debug_flag);
-		if(0 != i) exit(EXIT_FAILURE);
+		spawn_M1(M2_output, blood_output, M1_output, Architecture, envp, debug_flag);
 	}
 	else
 	{
@@ -407,8 +410,7 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 	}
 
 	/* Build the final binary */
-	i = spawn_hex2(M1_output, destination, Architecture, envp, debug_flag);
-	if(0 != i) exit(EXIT_FAILURE);
+	spawn_hex2(M1_output, destination, Architecture, envp, debug_flag);
 
 	/* clean up after ourselves*/
 	if(!DIRTY_MODE) remove(M1_output);
