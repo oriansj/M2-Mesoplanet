@@ -548,6 +548,23 @@ void handle_define()
 			expansion_end->next = NULL;
 			return;
 		}
+		else if(('/' == macro_token->s[0]) && ('*' == macro_token->s[1]))
+		{
+			eat_current_token();
+			continue;
+		}
+		else if(('/' == macro_token->s[0]) && ('/' == macro_token->s[1]))
+		{
+			macro_token->s = "\n";
+			if(NULL == expansion_end)
+			{
+				hold->expansion = NULL;
+				expansion_end = macro_token;
+				return;
+			}
+			expansion_end->next = NULL;
+			return;
+		}
 
 		if(NULL == hold)
 		{
