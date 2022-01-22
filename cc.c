@@ -44,7 +44,7 @@ int main(int argc, char** argv, char** envp)
 	FILE* tempfile;
 	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
-	init_macro_env("__M2__", "42", "__INTERNAL_M2__", 0); /* Setup __M2__ */
+	init_macro_env("__M2__", "__M2__", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
 	char* hold;
 	int DUMP_MODE = FALSE;

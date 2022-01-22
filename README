@@ -14,4 +14,6 @@ M2-Mesoplanet simplifies the bootstrappable stage0/M2-Planet toolchain by imitat
  - --max-string <N>  :: N is a number
  - --fuzz :: prevents execution of dangerous random garbage
  - --no-debug :: strip debug symbols from output
+ - --dirty-mode :: keep all temp files
+ - --debug-mode <N> :: N is a number
 

@@ -86,7 +86,6 @@ void eat_current_token_without_space()
 
 struct token_list* lookup_token(struct token_list* token, struct token_list* arguments)
 {
-	char *s;
 	if(NULL == token)
 	{
 		fputs("null token received in token\n", stderr);
@@ -152,7 +151,7 @@ struct token_list* insert_tokens(struct token_list* point, struct token_list* to
 struct token_list* copy_list(struct token_list* token)
 {
 	struct token_list* copy;
-        struct token_list* prev = NULL;
+	struct token_list* prev = NULL;
 
 	while (NULL != token)
 	{
@@ -883,6 +882,8 @@ struct token_list* maybe_expand(struct token_list* token)
 	{
 		return token->next;
 	}
+
+	if(match("__M2__", token->s)) return token->next;
 
 	token = eat_token(token);
 
