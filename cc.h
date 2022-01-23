@@ -28,6 +28,7 @@
 int in_set(int c, char* s);
 int match(char* a, char* b);
 void require(int bool, char* error);
+char* int2str(int x, int base, int signed_p);
 void reset_hold_string();
 
 

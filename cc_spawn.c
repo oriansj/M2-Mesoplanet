@@ -134,6 +134,70 @@ void sanity_command_check(char** array)
 	fputc('\n', stderr);
 }
 
+
+int what_exit(char* program, int status)
+{
+	/***********************************************************************************
+	 * If the low-order 8 bits of w_status are equal to 0x7F or zero, the child        *
+	 * process has stopped. If the low-order 8 bits of w_status are non-zero and are   *
+	 * not equal to 0x7F, the child process terminated due to a signal otherwise, the  *
+	 * child process terminated due to an exit() call.                                 *
+	 *                                                                                 *
+	 * In the event it was a signal that stopped the process the top 8 bits of         *
+	 * w_status contain the signal that caused the process to stop.                    *
+	 *                                                                                 *
+	 * In the event it was terminated the bottom 7 bits of w_status contain the        *
+	 * terminating error number for the process.                                       *
+	 *                                                                                 *
+	 * If bit 0x80 of w_status is set, a core dump was produced.                       *
+	 ***********************************************************************************/
+
+	int WIFEXITED = !(status & 0x7F);
+	int WEXITSTATUS = (status & 0xFF00) >> 8;
+	int WTERMSIG = status & 0x7F;
+	int WCOREDUMP = status & 0x80;
+	int WIFSIGNALED = !((0x7F == WTERMSIG) || (0 == WTERMSIG));
+	int WIFSTOPPED = ((0x7F == WTERMSIG) && (0 == WCOREDUMP));
+
+	if(WIFEXITED)
+	{
+		if(DEBUG_LEVEL > 2)
+		{
+			fputc('\n', stderr);
+			fputs(program, stderr);
+			fputs(" normal termination, exit status = ", stderr);
+			fputs(int2str(WEXITSTATUS, 10, TRUE), stderr);
+			fputc('\n', stderr);
+		}
+		return WEXITSTATUS;
+	}
+	else if (WIFSIGNALED)
+	{
+		fputc('\n', stderr);
+		fputs(program, stderr);
+		fputs(" abnormal termination, signal number = ", stderr);
+		fputs(int2str(WTERMSIG, 10, TRUE), stderr);
+		fputc('\n', stderr);
+		if(WCOREDUMP) fputs("core dumped\n", stderr);
+		return WTERMSIG;
+	}
+	else if(WIFSTOPPED)
+	{
+		fputc('\n', stderr);
+		fputs(program, stderr);
+		fputs(" child stopped, signal number = ", stderr);
+		fputs(int2str(WEXITSTATUS, 10, TRUE), stderr);
+		fputc('\n', stderr);
+		return WEXITSTATUS;
+	}
+
+	fputc('\n', stderr);
+	fputs(program, stderr);
+	fputs(" :: something crazy happened with execve\nI'm just gonna get the hell out of here\n", stderr);
+	exit(EXIT_FAILURE);
+}
+
+
 void _execute(char* name, char** array, char** envp)
 {
 	int status; /* i.e. return code */
@@ -186,22 +250,13 @@ void _execute(char* name, char** array, char** envp)
 	/* And we should wait for it to complete */
 	waitpid(f, &status, 0);
 
-	/***********************************************************************************
-	 * The bottom 8 bits are for TERMSIG values such as if the program crashed or etc  *
-	 * the second 8 bits are for the EXITSTATUS of the program that we waited for      *
-	 ***********************************************************************************/
-	if(status != 0)
+	int result = what_exit(program ,status);
+	if(0 != result)
 	{
 		fputs("Subprocess: ", stderr);
 		fputs(program, stderr);
-		if((status & 0x7f) != 0)
-		{
-			fputs(" aborted (or crashed)\nAborting for safety\n", stderr);
-			exit(status & 0x7f);
-		}
-
-		fputs(" exited with error code\nAborting for safety\n", stderr);
-		exit((status & 0xff00) >> 8);
+		fputs(" error\nAborting for safety\n", stderr);
+		exit(result);
 	}
 }
 
