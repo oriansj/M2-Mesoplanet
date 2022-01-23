@@ -49,6 +49,7 @@ int main(int argc, char** argv, char** envp)
 	char* hold;
 	int DUMP_MODE = FALSE;
 	DIRTY_MODE = FALSE;
+	int SPECIFIED_LIBRARY = FALSE;
 
 	/* Assume no debugging by default */
 	DEBUG_LEVEL = 0;
@@ -136,6 +137,18 @@ int main(int argc, char** argv, char** envp)
 			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
 			i += 2;
 		}
+		else if(match(argv[i], "-I"))
+		{
+			hold = argv[i+1];
+			if(NULL == hold)
+			{
+				fputs("-I requires a PATH\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			SPECIFIED_LIBRARY = TRUE;
+			M2LIBC_PATH = hold;
+			i += 2;
+		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
 			fputs(" -f input file\n -o output file\n --help for this message\n --version for file version\n-E or --preprocess-only\n--max-string N (N is a number)\n--fuzz\n--no-debug\n", stdout);
@@ -189,8 +202,11 @@ int main(int argc, char** argv, char** envp)
 	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
 	populate_env(envp);
 	setup_env();
-	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
-	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
+	if(!SPECIFIED_LIBRARY)
+	{
+		M2LIBC_PATH = env_lookup("M2LIBC_PATH");
+		if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
+	}
 	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
 
 	if(DUMP_MODE)
