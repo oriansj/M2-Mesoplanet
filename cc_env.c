@@ -97,6 +97,14 @@ void setup_env()
 		WORDSIZE = 64;
 		init_macro_env("__aarch64__", "1", "--architecture", 0);
 	}
+	else if(match("riscv32", ARCH))
+	{
+		BASEADDRESS = "0x600000";
+		Architecture = "riscv32";
+		WORDSIZE = 64;
+		init_macro_env("__riscv", "1", "--architecture", 0);
+		init_macro_env("__riscv_xlen", "32", "--architecture", 1);
+	}
 	else if(match("riscv64", ARCH))
 	{
 		BASEADDRESS = "0x600000";
@@ -109,7 +117,7 @@ void setup_env()
 	{
 		fputs("Unknown architecture: ", stderr);
 		fputs(ARCH, stderr);
-		fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64 and riscv64\n", stderr);
+		fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64, riscv32 and riscv64\n", stderr);
 		exit(EXIT_FAILURE);
 	}
 	if(2 <= DEBUG_LEVEL) fputs("setup_env successful\n", stderr);
