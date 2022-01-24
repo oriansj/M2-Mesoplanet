@@ -35,24 +35,47 @@ void spawn_processes(int debug_flag, char* preprocessed_file, char* destination,
 
 int main(int argc, char** argv, char** envp)
 {
+	/****************************************************************************
+	 *  Manually change debug level if you need testing of functionality prior  *
+	 * to --debug-mode functionality.                                           *
+	 * Zero means no debugging messages and larger positive values means more   *
+	 * chatty output. Level 15 means EVERYTHING but 7 should cover most magic   *
+	 ****************************************************************************/
+	DEBUG_LEVEL = 0;
+	/* Setup __M2__ (It is very very special *DO NOT MESS WITH IT* ) */
+	init_macro_env("__M2__", "__M2__", "__INTERNAL_M2__", 0);
+
+	/* Our fun globals */
 	FUZZING = FALSE;
 	MAX_STRING = 65536;
 	PREPROCESSOR_MODE = FALSE;
 	STDIO_USED = FALSE;
+	DIRTY_MODE = FALSE;
+
+	/* Our fun locals */
 	int debug_flag = TRUE;
 	FILE* in = stdin;
 	FILE* tempfile;
 	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
-	init_macro_env("__M2__", "__M2__", "__INTERNAL_M2__", 0); /* Setup __M2__ */
 	char* name;
 	char* hold;
 	int DUMP_MODE = FALSE;
-	DIRTY_MODE = FALSE;
-	int SPECIFIED_LIBRARY = FALSE;
 
-	/* Assume no debugging by default */
-	DEBUG_LEVEL = 0;
+	/* Get the environmental bits */
+	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
+	populate_env(envp);
+	setup_env();
+	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
+
+	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
+	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
+	else if(1 <= DEBUG_LEVEL)
+	{
+		fputs("M2LIBC_PATH set by environment variable to ", stderr);
+		fputs(M2LIBC_PATH, stderr);
+		fputc('\n', stderr);
+	}
 
 	int i = 1;
 	while(i <= argc)
@@ -145,7 +168,12 @@ int main(int argc, char** argv, char** envp)
 				fputs("-I requires a PATH\n", stderr);
 				exit(EXIT_FAILURE);
 			}
-			SPECIFIED_LIBRARY = TRUE;
+			if(1 <= DEBUG_LEVEL)
+			{
+				fputs("M2LIBC_PATH set by -I to ", stderr);
+				fputs(M2LIBC_PATH, stderr);
+				fputc('\n', stderr);
+			}
 			M2LIBC_PATH = hold;
 			i += 2;
 		}
@@ -197,17 +225,6 @@ int main(int argc, char** argv, char** envp)
 	if(1 <= DEBUG_LEVEL) fputs("Start to reverse list\n", stderr);
 	global_token = reverse_list(global_token);
 	if(1 <= DEBUG_LEVEL) fputs("List reversed\n", stderr);
-
-	/* Get the environmental bits */
-	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
-	populate_env(envp);
-	setup_env();
-	if(!SPECIFIED_LIBRARY)
-	{
-		M2LIBC_PATH = env_lookup("M2LIBC_PATH");
-		if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
-	}
-	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
 
 	if(DUMP_MODE)
 	{

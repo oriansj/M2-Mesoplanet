@@ -344,11 +344,9 @@ int include_file(int ch)
 	/* Try to open the file */
 	if('<' == new_filename[0])
 	{
-		char* path = env_lookup("M2LIBC_PATH");
-		if(NULL == path) path = "./M2libc";
 		if(match("stdio.h", new_filename + 1)) STDIO_USED = TRUE;
 		reset_hold_string();
-		strcat(hold_string, path);
+		strcat(hold_string, M2LIBC_PATH);
 		strcat(hold_string, "/");
 		strcat(hold_string, new_filename + 1);
 		strcat(new_filename, ">");
@@ -356,7 +354,15 @@ int include_file(int ch)
 	}
 	else
 	{
-		new_file = fopen(new_filename+1, "r");
+		if(match("M2libc/bootstrappable.h", new_filename+1))
+		{
+			reset_hold_string();
+			strcat(hold_string, M2LIBC_PATH);
+			strcat(hold_string, "/bootstrappable.h");
+			new_file = fopen(hold_string, "r");
+		}
+		else new_file = fopen(new_filename+1, "r");
+
 		strcat(new_filename, "\"");
 	}
 
