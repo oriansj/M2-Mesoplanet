@@ -152,6 +152,15 @@ int what_exit(char* program, int status)
 	 * If bit 0x80 of w_status is set, a core dump was produced.                       *
 	 ***********************************************************************************/
 
+	if(DEBUG_LEVEL > 6)
+	{
+		fputs("in what_exit with char* program of: ", stderr);
+		fputs(program, stderr);
+		fputs("\nAnd int status of: 0x", stderr);
+		fputs(int2str(status, 16, FALSE), stderr);
+		fputc('\n', stderr);
+	}
+
 	int WIFEXITED = !(status & 0x7F);
 	int WEXITSTATUS = (status & 0xFF00) >> 8;
 	int WTERMSIG = status & 0x7F;
