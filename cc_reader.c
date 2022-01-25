@@ -59,11 +59,16 @@ int grab_byte()
 	return c;
 }
 
-int consume_byte(int c)
+void push_byte(int c)
 {
 	hold_string[string_index] = c;
 	string_index = string_index + 1;
 	require(MAX_STRING > string_index, "Token exceeded MAX_STRING char limit\nuse --max-string number to increase\n");
+}
+
+int consume_byte(int c)
+{
+	push_byte(c);
 	return grab_byte();
 }
 
@@ -104,16 +109,23 @@ int preserve_keyword(int c, char* S)
 	return c;
 }
 
+void clear_string(char* s)
+{
+	int i = 0;
+	while(0 != s[i])
+	{
+		s[i] = 0;
+		i = i + 1;
+		require(i < MAX_STRING, "string exceeded max string size while clearing string\n");
+	}
+}
+
 void reset_hold_string()
 {
-	int i = MAX_STRING;
-	while(0 <= i)
-	{
-		hold_string[i] = 0;
-		i = i - 1;
-	}
+	clear_string(hold_string);
 	string_index = 0;
 }
+
 
 /* note if this is the first token in the list, head needs fixing up */
 struct token_list* eat_token(struct token_list* token)

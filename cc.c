@@ -51,6 +51,7 @@ int main(int argc, char** argv, char** envp)
 	PREPROCESSOR_MODE = FALSE;
 	STDIO_USED = FALSE;
 	DIRTY_MODE = FALSE;
+	Architecture = NULL;
 
 	/* Our fun locals */
 	int debug_flag = TRUE;
@@ -108,6 +109,13 @@ int main(int argc, char** argv, char** envp)
 			fputc('\n', stderr);
 			i+= 2;
 		}
+		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
+		{
+			hold = argv[i+1];
+			require(NULL != hold, "--architecture needs to be passed an architecture\n");
+			Architecture = hold;
+			i += 2;
+		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
 		{
 			if(NULL == hold_string)
@@ -138,6 +146,7 @@ int main(int argc, char** argv, char** envp)
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
 			destination_name = argv[i + 1];
+			require(NULL != destination_name, "--output option requires a filename to follow\n");
 			destination_file = fopen(destination_name, "w");
 			if(NULL == destination_file)
 			{
