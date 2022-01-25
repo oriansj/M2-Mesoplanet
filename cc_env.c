@@ -101,7 +101,6 @@ void setup_env()
 	{
 		BASEADDRESS = "0x600000";
 		Architecture = "riscv32";
-		WORDSIZE = 64;
 		init_macro_env("__riscv", "1", "--architecture", 0);
 		init_macro_env("__riscv_xlen", "32", "--architecture", 1);
 	}
