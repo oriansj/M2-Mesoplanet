@@ -33,11 +33,71 @@ void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
 void spawn_processes(int debug_flag, char* preprocessed_file, char* destination, char** envp);
 
+void prechecks(int argc, char** argv)
+{
+	char* hold;
+	int i = 1;
+	while(i <= argc)
+	{
+		if(NULL == argv[i])
+		{
+			i += 1;
+		}
+		else if(match(argv[i], "--debug-mode"))
+		{
+			hold = argv[i+1];
+			DEBUG_LEVEL = strtoint(hold);
+			fputs("DEBUG_LEVEL set to: ", stderr);
+			fputs(hold, stderr);
+			fputc('\n', stderr);
+			i+= 2;
+		}
+		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
+		{
+			hold = argv[i+1];
+			require(NULL != hold, "--architecture needs to be passed an architecture\n");
+			Architecture = hold;
+			i += 2;
+		}
+		else if(match(argv[i], "--max-string"))
+		{
+			hold = argv[i+1];
+			if(NULL == hold)
+			{
+				fputs("--max-string requires a numeric argument\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			MAX_STRING = strtoint(hold);
+			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
+			i += 2;
+		}
+		else if(match(argv[i], "-I"))
+		{
+			hold = argv[i+1];
+			if(NULL == hold)
+			{
+				fputs("-I requires a PATH\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			if(1 <= DEBUG_LEVEL)
+			{
+				fputs("M2LIBC_PATH set by -I to ", stderr);
+				fputs(M2LIBC_PATH, stderr);
+				fputc('\n', stderr);
+			}
+			M2LIBC_PATH = hold;
+			i += 2;
+		}
+		else
+		{
+			i += 1;
+		}
+	}
+}
+
 int main(int argc, char** argv, char** envp)
 {
 	/****************************************************************************
-	 *  Manually change debug level if you need testing of functionality prior  *
-	 * to --debug-mode functionality.                                           *
 	 * Zero means no debugging messages and larger positive values means more   *
 	 * chatty output. Level 15 means EVERYTHING but 7 should cover most magic   *
 	 ****************************************************************************/
@@ -60,8 +120,10 @@ int main(int argc, char** argv, char** envp)
 	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
 	char* name;
-	char* hold;
 	int DUMP_MODE = FALSE;
+
+	/* Try to get our needed updates */
+	prechecks(argc, argv);
 
 	/* Get the environmental bits */
 	if(1 <= DEBUG_LEVEL) fputs("Starting to setup Environment\n", stderr);
@@ -102,18 +164,12 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "--debug-mode"))
 		{
-			hold = argv[i+1];
-			DEBUG_LEVEL = strtoint(hold);
-			fputs("DEBUG_LEVEL set to: ", stderr);
-			fputs(hold, stderr);
-			fputc('\n', stderr);
+			/* Handled by precheck */
 			i+= 2;
 		}
 		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
 		{
-			hold = argv[i+1];
-			require(NULL != hold, "--architecture needs to be passed an architecture\n");
-			Architecture = hold;
+			/* Handled by precheck */
 			i += 2;
 		}
 		else if(match(argv[i], "-f") || match(argv[i], "--file"))
@@ -159,31 +215,12 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "--max-string"))
 		{
-			hold = argv[i+1];
-			if(NULL == hold)
-			{
-				fputs("--max-string requires a numeric argument\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			MAX_STRING = strtoint(hold);
-			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
+			/* handled by precheck */
 			i += 2;
 		}
 		else if(match(argv[i], "-I"))
 		{
-			hold = argv[i+1];
-			if(NULL == hold)
-			{
-				fputs("-I requires a PATH\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			if(1 <= DEBUG_LEVEL)
-			{
-				fputs("M2LIBC_PATH set by -I to ", stderr);
-				fputs(M2LIBC_PATH, stderr);
-				fputc('\n', stderr);
-			}
-			M2LIBC_PATH = hold;
+			/* Handled by precheck */
 			i += 2;
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))

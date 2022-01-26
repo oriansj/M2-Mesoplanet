@@ -339,6 +339,9 @@ void populate_env(char** envp)
 			fputc('\n', stderr);
 		}
 	}
+
+	free(envp_line);
+	free(envp_hold);
 	if(3 <= DEBUG_LEVEL)
 	{
 		fputs("\n\nenv loop successful\n", stderr);
