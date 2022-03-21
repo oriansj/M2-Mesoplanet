@@ -18,6 +18,7 @@
  */
 
 #include"cc.h"
+#include <unistd.h>
 
 /* The core functions */
 void populate_env(char** envp);
@@ -31,7 +32,7 @@ void init_macro_env(char* sym, char* value, char* source, int num);
 void preprocess();
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
-void spawn_processes(int debug_flag, char* preprocessed_file, char* destination, char** envp);
+void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp);
 
 void prechecks(int argc, char** argv)
 {
@@ -82,7 +83,7 @@ void prechecks(int argc, char** argv)
 			if(1 <= DEBUG_LEVEL)
 			{
 				fputs("M2LIBC_PATH set by -I to ", stderr);
-				fputs(M2LIBC_PATH, stderr);
+				fputs(hold, stderr);
 				fputc('\n', stderr);
 			}
 			M2LIBC_PATH = hold;
@@ -137,6 +138,15 @@ int main(int argc, char** argv, char** envp)
 	{
 		fputs("M2LIBC_PATH set by environment variable to ", stderr);
 		fputs(M2LIBC_PATH, stderr);
+		fputc('\n', stderr);
+	}
+
+	TEMPDIR = env_lookup("TMPDIR");
+	if(NULL == TEMPDIR) TEMPDIR = "/tmp";
+	else if(1 <= DEBUG_LEVEL)
+	{
+		fputs("TEMPDIR set by environment variable to ", stderr);
+		fputs(TEMPDIR, stderr);
 		fputc('\n', stderr);
 	}
 
@@ -245,6 +255,23 @@ int main(int argc, char** argv, char** envp)
 			debug_flag = FALSE;
 			i += 1;
 		}
+		else if(match(argv[i], "--temp-directory"))
+		{
+			name = argv[i+1];
+			if(NULL == name)
+			{
+				fputs("--temp-directory requires a PATH\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			if(1 <= DEBUG_LEVEL)
+			{
+				fputs("TEMPDIR set by --temp-directory to ", stderr);
+				fputs(name, stderr);
+				fputc('\n', stderr);
+			}
+			TEMPDIR = name;
+			i += 2;
+		}
 		else
 		{
 			fputs("UNKNOWN ARGUMENT\n", stdout);
@@ -288,18 +315,19 @@ int main(int argc, char** argv, char** envp)
 	}
 	else
 	{
-		char* prefix = calloc(10, sizeof(char));
-		if(0 == access("/tmp", 0))
+		/* Ensure we can write to the temp directory */
+		int permissions = access(TEMPDIR, 0);
+		if(0 != permissions)
 		{
-			strcpy(prefix, "/tmp/");
+			fputs("unable to access: ", stderr);
+			fputs(TEMPDIR, stderr);
+			fputs(" for use as a temp directory\nPlease use --temp-directory to set a directory you can use or set the TMPDIR variable\n", stderr);
+			exit(EXIT_FAILURE);
 		}
-		else
-		{
-			strcpy(prefix, "tmp-");
-		}
+
 		name = calloc(100, sizeof(char));
-		strcpy(name, prefix);
-		strcat(name, "M2-Mesoplanet-XXXXXX");
+		strcpy(name, TEMPDIR);
+		strcat(name, "/M2-Mesoplanet-XXXXXX");
 		i = mkstemp(name);
 		tempfile = fdopen(i, "w");
 		if(NULL != tempfile)
@@ -309,7 +337,7 @@ int main(int argc, char** argv, char** envp)
 			fclose(tempfile);
 
 			/* Make me a real binary */
-			spawn_processes(debug_flag, prefix, name, destination_name, envp);
+			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp);
 
 			/* And clean up the donkey */
 			if(!DIRTY_MODE) remove(name);

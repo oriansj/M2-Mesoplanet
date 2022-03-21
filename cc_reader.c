@@ -264,7 +264,6 @@ int get_token(int c)
 		c = consume_byte(c);
 	}
 
-	new_token(hold_string, string_index + 2);
 	return c;
 }
 
@@ -313,8 +312,6 @@ int read_include(int c)
 		}
 	}
 
-	/* with just a little extra to put in the matching at the end */
-	new_token(hold_string, string_index + 3);
 	return c;
 }
 
@@ -348,6 +345,9 @@ int include_file(int ch)
 
 	/* Get new filename */
 	read_include(ch);
+	/* with just a little extra to put in the matching at the end */
+	new_token(hold_string, string_index + 3);
+
 	ch = '\n';
 	new_filename = token->s;
 	/* Remove name from stream */
@@ -425,6 +425,7 @@ struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* fi
 	while(EOF != ch)
 	{
 		ch = get_token(ch);
+		new_token(hold_string, string_index + 2);
 		if(match("#include", token->s)) ch = include_file(ch);
 	}
 

@@ -421,7 +421,7 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 
 	char* M2_output = calloc(100, sizeof(char));
 	strcpy(M2_output, prefix);
-	strcat(M2_output, "M2-Planet-XXXXXX");
+	strcat(M2_output, "/M2-Planet-XXXXXX");
 	int i = mkstemp(M2_output);
 	if(-1 != i)
 	{
@@ -439,7 +439,7 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 	{
 		blood_output = calloc(100, sizeof(char));
 		strcpy(blood_output, prefix);
-		strcat(blood_output, "blood-elf-XXXXXX");
+		strcat(blood_output, "/blood-elf-XXXXXX");
 		i = mkstemp(blood_output);
 		if(-1 != i)
 		{
@@ -455,7 +455,7 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 
 	char* M1_output = calloc(100, sizeof(char));
 	strcpy(M1_output, prefix);
-	strcat(M1_output, "M1-macro-XXXXXX");
+	strcat(M1_output, "/M1-macro-XXXXXX");
 	i = mkstemp(M1_output);
 	if(-1 != i)
 	{
