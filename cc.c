@@ -288,8 +288,18 @@ int main(int argc, char** argv, char** envp)
 	}
 	else
 	{
+		char* prefix = calloc(10, sizeof(char));
+		if(0 == access("/tmp", 0))
+		{
+			strcpy(prefix, "/tmp/");
+		}
+		else
+		{
+			strcpy(prefix, "tmp-");
+		}
 		name = calloc(100, sizeof(char));
-		strcpy(name, "/tmp/M2-Mesoplanet-XXXXXX");
+		strcpy(name, prefix);
+		strcat(name, "M2-Mesoplanet-XXXXXX");
 		i = mkstemp(name);
 		tempfile = fdopen(i, "w");
 		if(NULL != tempfile)
@@ -299,7 +309,7 @@ int main(int argc, char** argv, char** envp)
 			fclose(tempfile);
 
 			/* Make me a real binary */
-			spawn_processes(debug_flag, name, destination_name, envp);
+			spawn_processes(debug_flag, prefix, name, destination_name, envp);
 
 			/* And clean up the donkey */
 			if(!DIRTY_MODE) remove(name);
