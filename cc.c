@@ -25,7 +25,7 @@ void populate_env(char** envp);
 void setup_env();
 char* env_lookup(char* variable);
 void initialize_types();
-struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename);
+struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename, int include);
 struct token_list* reverse_list(struct token_list* head);
 
 void init_macro_env(char* sym, char* value, char* source, int num);
@@ -122,6 +122,7 @@ int main(int argc, char** argv, char** envp)
 	FILE* destination_file = stdout;
 	char* name;
 	int DUMP_MODE = FALSE;
+	int follow_includes = TRUE;
 
 	/* Try to get our needed updates */
 	prechecks(argc, argv);
@@ -172,7 +173,11 @@ int main(int argc, char** argv, char** envp)
 			DIRTY_MODE = TRUE;
 			i+= 1;
 		}
-		else if(match(argv[i], "--debug-mode"))
+		else if(match(argv[i], "--no-includes"))
+		{
+			follow_includes = FALSE;
+			i+= 1;
+		}else if(match(argv[i], "--debug-mode"))
 		{
 			/* Handled by precheck */
 			i+= 2;
@@ -205,7 +210,7 @@ int main(int argc, char** argv, char** envp)
 				fputs("\n Aborting to avoid problems\n", stderr);
 				exit(EXIT_FAILURE);
 			}
-			global_token = read_all_tokens(in, global_token, name);
+			global_token = read_all_tokens(in, global_token, name, follow_includes);
 			fclose(in);
 			i += 2;
 		}
@@ -286,7 +291,7 @@ int main(int argc, char** argv, char** envp)
 	{
 		hold_string = calloc(MAX_STRING, sizeof(char));
 		require(NULL != hold_string, "Impossible Exhaustion has occured\n");
-		global_token = read_all_tokens(in, global_token, "STDIN");
+		global_token = read_all_tokens(in, global_token, "STDIN", follow_includes);
 	}
 
 	if(NULL == global_token)
