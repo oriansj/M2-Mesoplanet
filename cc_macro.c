@@ -1,5 +1,6 @@
 /* Copyright (C) 2021 Sanne Wouda
  * Copyright (C) 2021 Andrius Štikonas <andrius@stikonas.eu>
+ * Copyright (C) 2022 Jan (janneke) Nieuwenhuizen <janneke@gnu.org>
  * This file is part of M2-Planet.
  *
  * M2-Planet is free software: you can redistribute it and/or modify
@@ -598,7 +599,7 @@ void handle_undef()
 	eat_current_token();
 }
 
-void handle_error()
+void handle_error(int warning_p)
 {
 	/* don't use #error statements from non-included blocks */
 	int conditional_error = TRUE;
@@ -614,7 +615,8 @@ void handle_error()
 	if(conditional_error)
 	{
 		line_error_token(macro_token);
-		fputs(" error: #error ", stderr);
+		if(warning_p) fputs(" warning: #warning ", stderr);
+		else fputs(" error: #error ", stderr);
 		while (TRUE)
 		{
 			if ('\n' == macro_token->s[0]) break;
@@ -622,7 +624,7 @@ void handle_error()
 			macro_token = macro_token->next;
 		}
 		fputs("\n", stderr);
-		exit(EXIT_FAILURE);
+		if(!warning_p) exit(EXIT_FAILURE);
 	}
 	while (TRUE)
 	{
@@ -753,7 +755,11 @@ void macro_directive()
 	}
 	else if(match("#error", macro_token->s))
 	{
-		handle_error();
+		handle_error(FALSE);
+	}
+	else if(match("#warning", macro_token->s))
+	{
+		handle_error(TRUE);
 	}
 	else if(match("#FILENAME", macro_token->s))
 	{
