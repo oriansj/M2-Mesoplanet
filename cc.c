@@ -36,6 +36,7 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 
 void prechecks(int argc, char** argv)
 {
+	int env = 0;
 	char* hold;
 	int i = 1;
 	while(i <= argc)
@@ -87,6 +88,28 @@ void prechecks(int argc, char** argv)
 				fputc('\n', stderr);
 			}
 			M2LIBC_PATH = hold;
+			i += 2;
+		}
+		else if(match(argv[i], "-D"))
+		{
+			hold = argv[i+1];
+			if(NULL == hold)
+			{
+				fputs("-D requires an argument", stderr);
+				exit(EXIT_FAILURE);
+			}
+			while(0 != hold[0])
+			{
+				if('=' == hold[0])
+				{
+					hold[0] = 0;
+					hold = hold + 1;
+					break;
+				}
+				hold = hold + 1;
+			}
+			init_macro_env(argv[i+1], hold, "__ARGV__", env);
+			env = env + 1;
 			i += 2;
 		}
 		else
@@ -234,6 +257,11 @@ int main(int argc, char** argv, char** envp)
 			i += 2;
 		}
 		else if(match(argv[i], "-I"))
+		{
+			/* Handled by precheck */
+			i += 2;
+		}
+		else if(match(argv[i], "-D"))
 		{
 			/* Handled by precheck */
 			i += 2;
