@@ -224,6 +224,10 @@ void _execute(char* name, char** array, char** envp)
 
 	sanity_command_check(array);
 
+	int result;
+#ifdef __uefi__
+	result = spawn(program, array, envp);
+#else
 	int f = fork();
 
 	/* Ensure fork succeeded */
@@ -259,7 +263,8 @@ void _execute(char* name, char** array, char** envp)
 	/* And we should wait for it to complete */
 	waitpid(f, &status, 0);
 
-	int result = what_exit(program ,status);
+	result = what_exit(program, status);
+#endif
 	if(0 != result)
 	{
 		fputs("Subprocess: ", stderr);
