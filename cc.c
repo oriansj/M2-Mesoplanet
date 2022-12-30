@@ -48,7 +48,13 @@ void prechecks(int argc, char** argv)
 		else if(match(argv[i], "--debug-mode"))
 		{
 			hold = argv[i+1];
+			require(NULL != hold, "--debug-mode requires an argument\n");
 			DEBUG_LEVEL = strtoint(hold);
+			if(0 == DEBUG_LEVEL)
+			{
+				require(match("0", hold), "--debug-mode values must be numbers\n"
+				                          "and level 0 needed to be expressed as 0\n");
+			}
 			fputs("DEBUG_LEVEL set to: ", stderr);
 			fputs(hold, stderr);
 			fputc('\n', stderr);
@@ -64,11 +70,7 @@ void prechecks(int argc, char** argv)
 		else if(match(argv[i], "--max-string"))
 		{
 			hold = argv[i+1];
-			if(NULL == hold)
-			{
-				fputs("--max-string requires a numeric argument\n", stderr);
-				exit(EXIT_FAILURE);
-			}
+			require(NULL != hold, "--max-string requires a numeric argument\n");
 			MAX_STRING = strtoint(hold);
 			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
 			i += 2;
@@ -307,7 +309,15 @@ int main(int argc, char** argv, char** envp)
 		}
 		else
 		{
-			fputs("UNKNOWN ARGUMENT\n", stdout);
+			if(5 <= DEBUG_LEVEL)
+			{
+				fputs("on index: ", stderr);
+				fputs(int2str(i, 10, TRUE), stderr);
+				fputc('\n', stderr);
+			}
+			fputs("UNKNOWN ARGUMENT: ", stdout);
+			fputs(argv[i], stdout);
+			fputc('\n', stdout);
 			exit(EXIT_FAILURE);
 		}
 	}
