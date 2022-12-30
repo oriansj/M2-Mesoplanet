@@ -220,7 +220,7 @@ int main(int argc, char** argv, char** envp)
 			/* Handled by precheck */
 			i += 2;
 		}
-		else if(match(argv[i], "--os"))
+		else if(match(argv[i], "--os") || match(argv[i], "--operating-system"))
 		{
 			/* Handled by precheck */
 			i += 2;

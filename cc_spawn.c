@@ -285,8 +285,11 @@ void insert_array(char** array, int index, char* string)
 void spawn_hex2(char* input, char* output, char* architecture, char** envp, int debug)
 {
 	char* hex2;
-	if(match("UEFI", OperatingSystem)) hex2 = "hex2.efi";
-	else hex2 = "hex2";
+#ifdef __uefi__
+	hex2 = "hex2.efi";
+#else
+	hex2 = "hex2";
+#endif
 
 	char* elf_header = calloc(MAX_STRING, sizeof(char));
 	elf_header = strcat(elf_header, M2LIBC_PATH);
@@ -332,8 +335,11 @@ void spawn_hex2(char* input, char* output, char* architecture, char** envp, int 
 void spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
 {
 	char* M1;
-	if(match("UEFI", OperatingSystem)) M1 = "M1.efi";
-	else M1 = "M1";
+#ifdef __uefi__
+	M1 = "M1.efi";
+#else
+	M1 = "M1";
+#endif
 
 	fputs("# starting M1 assembly\n", stdout);
 	char* definitions = calloc(MAX_STRING, sizeof(char));
@@ -400,8 +406,11 @@ void spawn_M1(char* input, char* debug_file, char* output, char* architecture, c
 void spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 {
 	char* blood_elf;
-	if(match("UEFI", OperatingSystem)) blood_elf = "blood-elf.efi";
-	else blood_elf = "blood-elf";
+#ifdef __uefi__
+	blood_elf = "blood-elf.efi";
+#else
+	blood_elf = "blood-elf";
+#endif
 
 	fputs("# starting Blood-elf stub generation\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
@@ -425,8 +434,11 @@ void spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 void spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
 {
 	char* M2_Planet;
-	if(match("UEFI", OperatingSystem)) M2_Planet = "M2-Planet.efi";
-	else M2_Planet = "M2-Planet";
+#ifdef __uefi__
+	M2_Planet = "M2-Planet.efi";
+#else
+	M2_Planet = "M2-Planet";
+#endif
 
 	fputs("# starting M2-Planet build\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));

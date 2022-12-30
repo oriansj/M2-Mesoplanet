@@ -157,10 +157,7 @@ void setup_env()
 	/* Setup Operating System */
 	if(NULL == OperatingSystem)
 	{
-		struct utsname* unameData = get_uname_data();
-		if(match("UEFI", unameData->machine)) OperatingSystem = "UEFI";
-		else if(match("Linux", unameData->machine)) OperatingSystem = "Linux";
-		else OperatingSystem = unameData->sysname;
+		OperatingSystem = "Linux";
 		if(3 <= DEBUG_LEVEL)
 		{
 			fputs("Operating System selected: ", stderr);
@@ -180,7 +177,6 @@ void setup_env()
 				fputc('\n', stderr);
 			}
 		}
-		free(unameData);
 	}
 
 	if(match("UEFI", OperatingSystem))
