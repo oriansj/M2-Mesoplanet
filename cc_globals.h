@@ -41,6 +41,7 @@ extern int PREPROCESSOR_MODE;
 /* enable spawn behavior to be effective */
 extern char* M2LIBC_PATH;
 extern char* Architecture;
+extern char* OperatingSystem;
 extern int WORDSIZE;
 extern int ENDIAN;
 extern char* BASEADDRESS;

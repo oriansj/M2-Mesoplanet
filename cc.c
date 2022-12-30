@@ -67,6 +67,13 @@ void prechecks(int argc, char** argv)
 			Architecture = hold;
 			i += 2;
 		}
+		else if(match(argv[i], "--os"))
+		{
+			hold = argv[i+1];
+			require(NULL != hold, "--os needs to be passed an operating system\n");
+			OperatingSystem = hold;
+			i += 2;
+		}
 		else if(match(argv[i], "--max-string"))
 		{
 			hold = argv[i+1];
@@ -138,6 +145,7 @@ int main(int argc, char** argv, char** envp)
 	STDIO_USED = FALSE;
 	DIRTY_MODE = FALSE;
 	Architecture = NULL;
+	OperatingSystem = NULL;
 
 	/* Our fun locals */
 	int debug_flag = TRUE;
@@ -208,6 +216,11 @@ int main(int argc, char** argv, char** envp)
 			i+= 2;
 		}
 		else if(match(argv[i], "-A") || match(argv[i], "--architecture"))
+		{
+			/* Handled by precheck */
+			i += 2;
+		}
+		else if(match(argv[i], "--os"))
 		{
 			/* Handled by precheck */
 			i += 2;
