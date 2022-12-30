@@ -23,6 +23,22 @@ void init_macro_env(char* sym, char* value, char* source, int num);
 char* env_lookup(char* variable);
 void clear_string(char* s);
 
+struct utsname* get_uname_data()
+{
+	struct utsname* unameData = calloc(1, sizeof(struct utsname));
+	require(NULL != unameData, "unameData calloc failed\n");
+	uname(unameData);
+	if(4 <= DEBUG_LEVEL)
+	{
+		fputs("utsname details: ", stderr);
+		fputs(unameData->sysname, stderr);
+		fputc(' ', stderr);
+		fputs(unameData->machine, stderr);
+		fputc('\n', stderr);
+	}
+	return unameData;
+}
+
 void setup_env()
 {
 	if(2 <= DEBUG_LEVEL) fputs("Starting setup_env\n", stderr);
@@ -34,15 +50,7 @@ void setup_env()
 	else
 	{
 		ARCH = NULL;
-		struct utsname* unameData = calloc(1, sizeof(struct utsname));
-		require(NULL != unameData, "unameData calloc failed\n");
-		uname(unameData);
-		if(4 <= DEBUG_LEVEL)
-		{
-			fputs("utsname details: ", stderr);
-			fputs(unameData->machine, stderr);
-			fputc('\n', stderr);
-		}
+		struct utsname* unameData = get_uname_data();
 
 		if(match("i386", unameData->machine) ||
 		   match("i486", unameData->machine) ||
@@ -70,6 +78,7 @@ void setup_env()
 				fputc('\n', stderr);
 			}
 		}
+		free(unameData);
 	}
 
 
@@ -143,6 +152,45 @@ void setup_env()
 		fputs(" know values are: knight-native, knight-posix, x86, amd64, armv7l, aarch64, riscv32 and riscv64\n", stderr);
 		exit(EXIT_FAILURE);
 	}
+
+
+	/* Setup Operating System */
+	if(NULL == OperatingSystem)
+	{
+		struct utsname* unameData = get_uname_data();
+		if(match("UEFI", unameData->machine)) OperatingSystem = "UEFI";
+		else if(match("Linux", unameData->machine)) OperatingSystem = "Linux";
+		else OperatingSystem = unameData->sysname;
+		if(3 <= DEBUG_LEVEL)
+		{
+			fputs("Operating System selected: ", stderr);
+			fputs(OperatingSystem, stderr);
+			fputc('\n', stderr);
+		}
+
+		/* Check for override */
+		char* hold = env_lookup("OS_OVERRIDE");
+		if(NULL != hold)
+		{
+			OperatingSystem = hold;
+			if(3 <= DEBUG_LEVEL)
+			{
+				fputs("environmental override for OS: ", stderr);
+				fputs(OperatingSystem, stderr);
+				fputc('\n', stderr);
+			}
+		}
+		free(unameData);
+	}
+
+	if(match("UEFI", OperatingSystem))
+	{
+		if(4 <= DEBUG_LEVEL) fputs("Using UEFI\n", stderr);
+		BASEADDRESS = "0x0";
+		OperatingSystem = "UEFI";
+		init_macro_env("__uefi__", "1", "--os", 0);
+	}
+
 	if(2 <= DEBUG_LEVEL) fputs("setup_env successful\n", stderr);
 }
 

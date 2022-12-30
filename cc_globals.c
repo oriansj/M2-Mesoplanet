@@ -40,6 +40,7 @@ int PREPROCESSOR_MODE;
 /* enable spawn behavior to be effective */
 char* M2LIBC_PATH;
 char* Architecture;
+char* OperatingSystem;
 int WORDSIZE;
 int ENDIAN;
 char* BASEADDRESS;

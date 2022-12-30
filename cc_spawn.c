@@ -284,11 +284,16 @@ void insert_array(char** array, int index, char* string)
 
 void spawn_hex2(char* input, char* output, char* architecture, char** envp, int debug)
 {
+	char* hex2;
+	if(match("UEFI", OperatingSystem)) hex2 = "hex2.efi";
+	else hex2 = "hex2";
+
 	char* elf_header = calloc(MAX_STRING, sizeof(char));
 	elf_header = strcat(elf_header, M2LIBC_PATH);
 	elf_header = strcat(elf_header, "/");
 	elf_header = strcat(elf_header, architecture);
-	elf_header = strcat(elf_header, "/ELF-");
+	if(match("UEFI", OperatingSystem)) elf_header = strcat(elf_header, "/uefi/PE32-");
+	else elf_header = strcat(elf_header, "/ELF-");
 	elf_header = strcat(elf_header, architecture);
 	if(debug)
 	{
@@ -301,7 +306,7 @@ void spawn_hex2(char* input, char* output, char* architecture, char** envp, int 
 
 	fputs("# starting hex2 linking\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "hex2");
+	insert_array(array, 0, hex2);
 	insert_array(array, 1, "--file");
 	insert_array(array, 2, elf_header);
 	insert_array(array, 3, "--file");
@@ -320,12 +325,16 @@ void spawn_hex2(char* input, char* output, char* architecture, char** envp, int 
 	{
 		insert_array(array, 11, "--little-endian");
 	}
-	_execute("hex2", array, envp);
+	_execute(hex2, array, envp);
 }
 
 
 void spawn_M1(char* input, char* debug_file, char* output, char* architecture, char** envp, int debug_flag)
 {
+	char* M1;
+	if(match("UEFI", OperatingSystem)) M1 = "M1.efi";
+	else M1 = "M1";
+
 	fputs("# starting M1 assembly\n", stdout);
 	char* definitions = calloc(MAX_STRING, sizeof(char));
 	definitions = strcat(definitions, M2LIBC_PATH);
@@ -339,7 +348,12 @@ void spawn_M1(char* input, char* debug_file, char* output, char* architecture, c
 	libc = strcat(libc, M2LIBC_PATH);
 	libc = strcat(libc, "/");
 	libc = strcat(libc, architecture);
-	if(STDIO_USED)
+
+	if(match("UEFI", OperatingSystem))
+	{
+		libc = strcat(libc, "/uefi/libc-full.M1");
+	}
+	else if(STDIO_USED)
 	{
 		libc = strcat(libc, "/libc-full.M1");
 	}
@@ -349,7 +363,7 @@ void spawn_M1(char* input, char* debug_file, char* output, char* architecture, c
 	}
 
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "M1");
+	insert_array(array, 0, M1);
 	insert_array(array, 1, "--file");
 	insert_array(array, 2, definitions);
 	insert_array(array, 3, "--file");
@@ -379,15 +393,19 @@ void spawn_M1(char* input, char* debug_file, char* output, char* architecture, c
 		insert_array(array, 10, "--output");
 		insert_array(array, 11, output);
 	}
-	_execute("M1", array, envp);
+	_execute(M1, array, envp);
 }
 
 
 void spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 {
+	char* blood_elf;
+	if(match("UEFI", OperatingSystem)) blood_elf = "blood-elf.efi";
+	else blood_elf = "blood-elf";
+
 	fputs("# starting Blood-elf stub generation\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "blood-elf");
+	insert_array(array, 0,blood_elf);
 	insert_array(array, 1, "--file");
 	insert_array(array, 2, input);
 	if(ENDIAN)
@@ -401,14 +419,18 @@ void spawn_blood_elf(char* input, char* output, char** envp, int large_flag)
 	insert_array(array, 4, "--output");
 	insert_array(array, 5, output);
 	if(large_flag) insert_array(array, 6, "--64");
-	_execute("blood-elf", array, envp);
+	_execute(blood_elf, array, envp);
 }
 
 void spawn_M2(char* input, char* output, char* architecture, char** envp, int debug_flag)
 {
+	char* M2_Planet;
+	if(match("UEFI", OperatingSystem)) M2_Planet = "M2-Planet.efi";
+	else M2_Planet = "M2-Planet";
+
 	fputs("# starting M2-Planet build\n", stdout);
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
-	insert_array(array, 0, "M2-Planet");
+	insert_array(array, 0, M2_Planet);
 	insert_array(array, 1, "--file");
 	insert_array(array, 2, input);
 	insert_array(array, 3, "--output");
@@ -416,13 +438,18 @@ void spawn_M2(char* input, char* output, char* architecture, char** envp, int de
 	insert_array(array, 5, "--architecture");
 	insert_array(array, 6, architecture);
 	if(debug_flag) insert_array(array, 7, "--debug");
-	_execute("M2-Planet", array, envp);
+	_execute(M2_Planet, array, envp);
 }
 
 void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp)
 {
 	int large_flag = FALSE;
 	if(WORDSIZE > 32) large_flag = TRUE;
+
+	if(match("UEFI", OperatingSystem))
+	{
+		debug_flag = FALSE;
+	}
 
 	char* M2_output = calloc(100, sizeof(char));
 	strcpy(M2_output, prefix);
