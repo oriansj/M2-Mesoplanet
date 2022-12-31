@@ -67,10 +67,10 @@ void prechecks(int argc, char** argv)
 			Architecture = hold;
 			i += 2;
 		}
-		else if(match(argv[i], "--os"))
+		else if(match(argv[i], "--os") || match(argv[i], "--operating-system"))
 		{
 			hold = argv[i+1];
-			require(NULL != hold, "--os needs to be passed an operating system\n");
+			require(NULL != hold, "--operating-system needs to be passed an operating system\n");
 			OperatingSystem = hold;
 			i += 2;
 		}
