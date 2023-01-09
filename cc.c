@@ -34,6 +34,8 @@ void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
 void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp);
 
+int follow_includes;
+
 void prechecks(int argc, char** argv)
 {
 	int env = 0;
@@ -81,6 +83,11 @@ void prechecks(int argc, char** argv)
 			MAX_STRING = strtoint(hold);
 			require(0 < MAX_STRING, "Not a valid string size\nAbort and fix your --max-string\n");
 			i += 2;
+		}
+		else if(match(argv[i], "--no-includes"))
+		{
+			follow_includes = FALSE;
+			i+= 1;
 		}
 		else if(match(argv[i], "-I"))
 		{
@@ -155,7 +162,7 @@ int main(int argc, char** argv, char** envp)
 	FILE* destination_file = stdout;
 	char* name;
 	int DUMP_MODE = FALSE;
-	int follow_includes = TRUE;
+	follow_includes = TRUE;
 
 	/* Try to get our needed updates */
 	prechecks(argc, argv);
@@ -208,9 +215,10 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "--no-includes"))
 		{
-			follow_includes = FALSE;
+			/* Handled by precheck*/
 			i+= 1;
-		}else if(match(argv[i], "--debug-mode"))
+		}
+		else if(match(argv[i], "--debug-mode"))
 		{
 			/* Handled by precheck */
 			i+= 2;

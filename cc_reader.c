@@ -385,9 +385,12 @@ int include_file(int ch, int include_file)
 	/* special case this compatibility crap */
 	if(match("\"../gcc_req.h\"", new_filename) || match("\"gcc_req.h\"", new_filename)) return ch;
 
-	fputs("reading file: ", stderr);
-	fputs(new_filename, stderr);
-	fputc('\n', stderr);
+	if(include_file)
+	{
+		fputs("reading file: ", stderr);
+		fputs(new_filename, stderr);
+		fputc('\n', stderr);
+	}
 
 	/* catch garbage input */
 	if(NULL == new_file)
