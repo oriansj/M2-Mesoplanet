@@ -375,7 +375,7 @@ int include_file(int ch, int include_file)
 				return ch;
 			}
 		}
-		else if(match("uefi", OperatingSystem))
+		else if(match("UEFI", OperatingSystem))
 		{
 			if(NULL == strstr(hold_string, "linux"))
 			{
