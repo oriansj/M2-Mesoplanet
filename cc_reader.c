@@ -362,7 +362,37 @@ int include_file(int ch, int include_file)
 		strcat(hold_string, "/");
 		strcat(hold_string, new_filename + 1);
 		strcat(new_filename, ">");
-		new_file = fopen(hold_string, "r");
+		if(match("Linux", OperatingSystem))
+		{
+			if(NULL == strstr(hold_string, "uefi"))
+			{
+				new_file = fopen(hold_string, "r");
+			}
+			else
+			{
+				puts("skipping:");
+				puts(hold_string);
+				return ch;
+			}
+		}
+		else if(match("uefi", OperatingSystem))
+		{
+			if(NULL == strstr(hold_string, "linux"))
+			{
+				new_file = fopen(hold_string, "r");
+			}
+			else
+			{
+				puts("skipping:");
+				puts(hold_string);
+				return ch;
+			}
+		}
+		else
+		{
+			puts("unknown host");
+			exit(EXIT_FAILURE);
+		}
 	}
 	else
 	{
