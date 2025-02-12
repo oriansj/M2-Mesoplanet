@@ -233,33 +233,6 @@ int main(int argc, char** argv, char** envp)
 			/* Handled by precheck */
 			i += 2;
 		}
-		else if(match(argv[i], "-f") || match(argv[i], "--file"))
-		{
-			if(NULL == hold_string)
-			{
-				hold_string = calloc(MAX_STRING + 4, sizeof(char));
-				require(NULL != hold_string, "Impossible Exhaustion has occured\n");
-			}
-
-			name = argv[i + 1];
-			if(NULL == name)
-			{
-				fputs("did not receive a file name\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-
-			in = fopen(name, "r");
-			if(NULL == in)
-			{
-				fputs("Unable to open for reading file: ", stderr);
-				fputs(name, stderr);
-				fputs("\n Aborting to avoid problems\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			global_token = read_all_tokens(in, global_token, name, follow_includes);
-			fclose(in);
-			i += 2;
-		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
 			destination_name = argv[i + 1];
@@ -291,7 +264,7 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			fputs("Usage: M2-Mesoplanet [options]\n"
+			fputs("Usage: M2-Mesoplanet [options] file...\n"
 				"Options:\n"
 				" --file,-f               input file\n"
 				" --output,-o             output file\n"
@@ -348,16 +321,37 @@ int main(int argc, char** argv, char** envp)
 		}
 		else
 		{
-			if(5 <= DEBUG_LEVEL)
+			if(match(argv[i], "-f") || match(argv[i], "--file"))
 			{
-				fputs("on index: ", stderr);
-				fputs(int2str(i, 10, TRUE), stderr);
-				fputc('\n', stderr);
+                            i = i + 1;
+                        }
+
+			if(NULL == hold_string)
+			{
+				hold_string = calloc(MAX_STRING + 4, sizeof(char));
+				require(NULL != hold_string, "Impossible Exhaustion has occured\n");
 			}
-			fputs("UNKNOWN ARGUMENT: ", stdout);
-			fputs(argv[i], stdout);
-			fputc('\n', stdout);
-			exit(EXIT_FAILURE);
+
+			name = argv[i];
+			if(NULL == name)
+			{
+				fputs("did not receive a file name\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+
+			in = fopen(name, "r");
+			if(NULL == in)
+			{
+				fputs("Unable to open for reading file: ", stderr);
+				fputs(name, stderr);
+				fputs("\n Aborting to avoid problems\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+
+			global_token = read_all_tokens(in, global_token, name, follow_includes);
+			fclose(in);
+
+			i += 1;
 		}
 	}
 
