@@ -291,7 +291,25 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			fputs(" -f input file\n -o output file\n --help for this message\n --version for file version\n-E or --preprocess-only\n--max-string N (N is a number)\n--fuzz\n--no-debug\n", stdout);
+			fputs("Usage: M2-Mesoplanet [options]\n"
+				"Options:\n"
+				" --file,-f               input file\n"
+				" --output,-o             output file\n"
+				" --architecture,-A       Target architecture. Use -A to list options\n"
+				" --operating-system,--os Target operating system\n"
+				" --preprocess-only,-E    Preprocess only\n"
+				" --max-string N          Size of maximum string value (default 4096)\n"
+				" --no-includes           Disable following include files\n"
+				" --debug-mode N          Compiler debug level. 0 is disabled and 15 is max\n"
+				" --dump-mode             Dump tokens before preprocessing\n"
+				" --dirty-mode            Do not remove temporary files\n"
+				" -D                      Add define\n"
+				" -I                      Add M2libc path. Will override the M2LIBC_PATH environment variable.\n"
+				" --fuzz                  Do not execve potentially dangerous inputs\n"
+				" --no-debug              Do not output debug info\n"
+				" --temp-directory        Directory used for temporary artifacts. Will override TMPDIR env var.\n"
+				" --help,-h               Display this message\n"
+				" --version,-V            Display compiler version\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
