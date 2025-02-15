@@ -233,33 +233,6 @@ int main(int argc, char** argv, char** envp)
 			/* Handled by precheck */
 			i += 2;
 		}
-		else if(match(argv[i], "-f") || match(argv[i], "--file"))
-		{
-			if(NULL == hold_string)
-			{
-				hold_string = calloc(MAX_STRING + 4, sizeof(char));
-				require(NULL != hold_string, "Impossible Exhaustion has occured\n");
-			}
-
-			name = argv[i + 1];
-			if(NULL == name)
-			{
-				fputs("did not receive a file name\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-
-			in = fopen(name, "r");
-			if(NULL == in)
-			{
-				fputs("Unable to open for reading file: ", stderr);
-				fputs(name, stderr);
-				fputs("\n Aborting to avoid problems\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			global_token = read_all_tokens(in, global_token, name, follow_includes);
-			fclose(in);
-			i += 2;
-		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
 			destination_name = argv[i + 1];
@@ -291,7 +264,25 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			fputs(" -f input file\n -o output file\n --help for this message\n --version for file version\n-E or --preprocess-only\n--max-string N (N is a number)\n--fuzz\n--no-debug\n", stdout);
+			fputs("Usage: M2-Mesoplanet [options] file...\n"
+				"Options:\n"
+				" --file,-f               input file\n"
+				" --output,-o             output file\n"
+				" --architecture,-A       Target architecture. Use -A to list options\n"
+				" --operating-system,--os Target operating system\n"
+				" --preprocess-only,-E    Preprocess only\n"
+				" --max-string N          Size of maximum string value (default 4096)\n"
+				" --no-includes           Disable following include files\n"
+				" --debug-mode N          Compiler debug level. 0 is disabled and 15 is max\n"
+				" --dump-mode             Dump tokens before preprocessing\n"
+				" --dirty-mode            Do not remove temporary files\n"
+				" -D                      Add define\n"
+				" -I                      Add M2libc path. Will override the M2LIBC_PATH environment variable.\n"
+				" --fuzz                  Do not execve potentially dangerous inputs\n"
+				" --no-debug              Do not output debug info\n"
+				" --temp-directory        Directory used for temporary artifacts. Will override TMPDIR env var.\n"
+				" --help,-h               Display this message\n"
+				" --version,-V            Display compiler version\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
@@ -330,16 +321,37 @@ int main(int argc, char** argv, char** envp)
 		}
 		else
 		{
-			if(5 <= DEBUG_LEVEL)
+			if(match(argv[i], "-f") || match(argv[i], "--file"))
 			{
-				fputs("on index: ", stderr);
-				fputs(int2str(i, 10, TRUE), stderr);
-				fputc('\n', stderr);
+                            i = i + 1;
+                        }
+
+			if(NULL == hold_string)
+			{
+				hold_string = calloc(MAX_STRING + 4, sizeof(char));
+				require(NULL != hold_string, "Impossible Exhaustion has occured\n");
 			}
-			fputs("UNKNOWN ARGUMENT: ", stdout);
-			fputs(argv[i], stdout);
-			fputc('\n', stdout);
-			exit(EXIT_FAILURE);
+
+			name = argv[i];
+			if(NULL == name)
+			{
+				fputs("did not receive a file name\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+
+			in = fopen(name, "r");
+			if(NULL == in)
+			{
+				fputs("Unable to open for reading file: ", stderr);
+				fputs(name, stderr);
+				fputs("\n Aborting to avoid problems\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+
+			global_token = read_all_tokens(in, global_token, name, follow_includes);
+			fclose(in);
+
+			i += 1;
 		}
 	}
 
