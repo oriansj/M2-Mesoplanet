@@ -120,7 +120,7 @@ DESTDIR:=
 PREFIX:=/usr/local
 bindir:=$(DESTDIR)$(PREFIX)/bin
 .PHONY: install
-install: M2-Mesoplanet
+install: bin/M2-Mesoplanet
 	mkdir -p $(bindir)
 	cp $^ $(bindir)
 
