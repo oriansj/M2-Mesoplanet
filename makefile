@@ -108,13 +108,18 @@ results:
 test: M2-Mesoplanet
 	./test/test0000/run_test.sh
 	./test/test0001/run_test.sh
+	./test/test0002/run_test.sh
+	./test/test0003/run_test.sh
 #	sha256sum -c test/test.answers
 
 
 # Generate test answers
 .PHONY: Generate-test-answers
 Generate-test-answers:
-	sha256sum test/results/* >| test/test.answers
+	sha256sum test/test0000/tmp/return.c >| test/test0000/proof.answer
+	sha256sum test/test0001/tmp/return.c >| test/test0001/proof.answer
+	sha256sum test/test0002/tmp/macro_functions.c >| test/test0002/proof.answer
+	sha256sum test/test0003/tmp/include_paths1.c >| test/test0003/proof.answer
 
 DESTDIR:=
 PREFIX:=/usr/local
