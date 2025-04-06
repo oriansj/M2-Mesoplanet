@@ -403,7 +403,27 @@ int include_file(int ch, int include_file)
 			strcat(hold_string, "/bootstrappable.h");
 			new_file = fopen(hold_string, "r");
 		}
-		else new_file = fopen(new_filename+1, "r");
+		else
+		{
+			/* Looks up in the current working directory.
+			 * This isn't _really_ compatible with GCC since it only looks in the
+			 * directory of the current file, but it's kept as backwards compatibility.
+			 *
+			 * Arguably this behavior isn't very intuitive since attempting to compile
+			 * a project from a different working directory can lead to including different
+			 * files resulting in a different executable.
+			 * */
+			new_file = fopen(new_filename+1, "r");
+			if(new_file == NULL)
+			{
+				reset_hold_string();
+				strcat(hold_string, file);
+				char* filename_separator = strrchr(hold_string, '/');
+				filename_separator[1] = '\0';
+				strcat(hold_string, new_filename + 1);
+				new_file = fopen(hold_string, "r");
+			}
+		}
 
 		strcat(new_filename, "\"");
 	}
