@@ -191,6 +191,10 @@ int get_token(int c)
 	{
 		c = preserve_string(c);
 	}
+	else if(c == ':')
+	{
+		c = consume_byte(c);
+	}
 	else if(c == '/')
 	{
 		c = consume_byte(c);
