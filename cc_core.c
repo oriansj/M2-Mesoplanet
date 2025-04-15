@@ -38,7 +38,7 @@ void line_error_token(struct token_list *token)
 	fputs(":", stderr);
 }
 
-void line_error()
+void line_error(void)
 {
 	line_error_token(global_token);
 }

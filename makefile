@@ -21,7 +21,7 @@ PACKAGE = m2-mesoplanet
 
 # C compiler settings
 CC?=gcc
-CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb
+CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb -Wall -Wextra -Wstrict-prototypes
 ARCH:=$(shell get_machine)
 BLOOD_FLAG:=$(shell get_machine --blood)
 ENDIAN_FLAG:=$(shell get_machine --endian)

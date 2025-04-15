@@ -52,7 +52,7 @@ void just_seen(char* s)
 	vision = hold;
 }
 
-int grab_byte()
+int grab_byte(void)
 {
 	int c = fgetc(input);
 	if(10 == c) line = line + 1;
@@ -120,7 +120,7 @@ void clear_string(char* s)
 	}
 }
 
-void reset_hold_string()
+void reset_hold_string(void)
 {
 	clear_string(hold_string);
 	string_index = 0;

@@ -22,14 +22,14 @@
 
 /* The core functions */
 void populate_env(char** envp);
-void setup_env();
+void setup_env(void);
 char* env_lookup(char* variable);
-void initialize_types();
+void initialize_types(void);
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename, int include);
 struct token_list* reverse_list(struct token_list* head);
 
 void init_macro_env(char* sym, char* value, char* source, int num);
-void preprocess();
+void preprocess(void);
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
 void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp, int no_c_files);
