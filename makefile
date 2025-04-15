@@ -29,7 +29,7 @@ BASE_ADDRESS:=$(shell get_machine --hex2)
 
 all: M2-Mesoplanet
 
-M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
+M2-Mesoplanet: bin cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
 	$(CC) $(CFLAGS) \
 	M2libc/bootstrappable.c \
 	cc_reader.c \
@@ -43,7 +43,7 @@ M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spa
 	gcc_req.h \
 	-o bin/M2-Mesoplanet
 
-M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
+M2-boot: bin cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
 	echo $(ARCH)
 	echo $(BLOOD_FLAG)
 	echo $(ENDIAN_FLAG)
@@ -110,9 +110,6 @@ clean-tmp:
 bin:
 	mkdir -p bin
 
-results:
-	mkdir -p test/results
-
 # tests
 test: M2-Mesoplanet
 	./test/test0000/run_test.sh
@@ -120,7 +117,6 @@ test: M2-Mesoplanet
 	./test/test0002/run_test.sh
 	./test/test0003/run_test.sh
 	./test/test0004/run_test.sh
-#	sha256sum -c test/test.answers
 
 
 # Generate test answers
