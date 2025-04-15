@@ -30,7 +30,8 @@ int match(char* a, char* b);
 void require(int bool, char* error);
 char* int2str(int x, int base, int signed_p);
 void reset_hold_string();
-
+int ends_with(char* str, char* needle);
+void append_file_contents(FILE* f, FILE* appended_file);
 
 struct type
 {
@@ -65,6 +66,12 @@ struct token_list
 		int depth;
 		int linenumber;
 	};
+};
+
+struct object_file_list
+{
+	FILE* file;
+	struct object_file_list* next;
 };
 
 #include "cc_globals.h"

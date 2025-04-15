@@ -20,6 +20,8 @@
 extern struct type* global_types;
 extern struct type* prim_types;
 
+extern struct object_file_list* extra_object_files;
+
 /* What we are currently working on */
 extern struct token_list* global_token;
 

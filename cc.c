@@ -32,7 +32,7 @@ void init_macro_env(char* sym, char* value, char* source, int num);
 void preprocess();
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
-void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp);
+void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp, int no_c_files);
 
 int follow_includes;
 
@@ -369,8 +369,20 @@ int main(int argc, char** argv, char** envp)
 				exit(EXIT_FAILURE);
 			}
 
-			global_token = read_all_tokens(in, global_token, name, follow_includes);
-			fclose(in);
+			if(ends_with(name, ".o"))
+			{
+				if(1 <= DEBUG_LEVEL) fprintf(stderr, "Object file added: '%s'\n", name);
+
+				struct object_file_list* last = extra_object_files;
+				extra_object_files = calloc(1, sizeof(struct object_file_list));
+				extra_object_files->file = in;
+				extra_object_files->next = last;
+			}
+			else
+			{
+				global_token = read_all_tokens(in, global_token, name, follow_includes);
+				fclose(in);
+			}
 
 			i += 1;
 		}
@@ -386,7 +398,7 @@ int main(int argc, char** argv, char** envp)
 		global_token = read_all_tokens(in, global_token, "STDIN", follow_includes);
 	}
 
-	if(NULL == global_token)
+	if(NULL == global_token && NULL == extra_object_files)
 	{
 		fputs("Either no input files were given or they were empty\n", stderr);
 		exit(EXIT_FAILURE);
@@ -458,8 +470,10 @@ int main(int argc, char** argv, char** envp)
 				strcpy(extension, ".o\0");
 			}
 
+			int no_c_files = global_token == NULL;
+
 			/* Make me a real binary */
-			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp);
+			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp, no_c_files);
 
 			/* And clean up the donkey */
 			if(!DIRTY_MODE) remove(name);

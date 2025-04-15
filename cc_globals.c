@@ -20,6 +20,8 @@
 struct type* global_types;
 struct type* prim_types;
 
+struct object_file_list* extra_object_files;
+
 /* What we are currently working on */
 struct token_list* global_token;
 

@@ -1,2 +1,7 @@
 
-int f() { return 0; }
+#include <stdio.h>
+
+int f() {
+	printf("Hello world\n");
+	return 0;
+}

@@ -57,4 +57,97 @@ if [ ! -f ${TMPDIR}/a.out ]; then
 	exit 6
 fi
 
+# Two object files with one stdio.h
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/main.c \
+	test/test0004/f.c \
+	-o ${TMPDIR}/both_source \
+	|| exit 7
+
+OUTPUT=$("${TMPDIR}/both_source") || exit 8
+if [ "$OUTPUT" != "Hello world" ]; then
+	exit 9
+fi
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/main.c \
+	test/test0004/tmp/f.o \
+	-o ${TMPDIR}/main_source \
+	|| exit 10
+
+OUTPUT=$("${TMPDIR}/main_source") || exit 11
+if [ "$OUTPUT" != "Hello world" ]; then
+	exit 12
+fi
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/tmp/main.o \
+	test/test0004/f.c \
+	-o ${TMPDIR}/f_source \
+	|| exit 13
+
+OUTPUT=$("${TMPDIR}/f_source") || exit 14
+if [ "$OUTPUT" != "Hello world" ]; then
+	exit 15
+fi
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/tmp/main.o \
+	test/test0004/tmp/f.o \
+	--dirty-mode \
+	-o ${TMPDIR}/double_object_file \
+	|| exit 16
+
+OUTPUT=$("${TMPDIR}/double_object_file") || exit 17
+if [ "$OUTPUT" != "Hello world" ]; then
+	exit 18
+fi
+
+# Two object files without any stdio.h
+
+"${BINDIR}/M2-Mesoplanet" \
+	-c \
+	"test/test0004/f_no_print.c" \
+	-o "${TMPDIR}/f_no_print.o" \
+	|| exit 19
+
+if [ ! -f ${TMPDIR}/f_no_print.o ]; then
+	echo "FAILURE: ${TMPDIR}/f_no_print.o not found!"
+	exit 20
+fi
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/main.c \
+	test/test0004/f_no_print.c \
+	-o ${TMPDIR}/both_source_no_print \
+	|| exit 21
+
+"${TMPDIR}/both_source_no_print" || exit 22
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/main.c \
+	test/test0004/tmp/f_no_print.o \
+	-o ${TMPDIR}/main_source_no_print \
+	|| exit 23
+
+"${TMPDIR}/main_source_no_print" || exit 24
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/tmp/main.o \
+	test/test0004/f_no_print.c \
+	-o ${TMPDIR}/f_source_no_print \
+	|| exit 25
+
+"${TMPDIR}/f_source_no_print" || exit 26
+
+"${BINDIR}/M2-Mesoplanet" \
+	test/test0004/tmp/main.o \
+	test/test0004/tmp/f_no_print.o \
+	--dirty-mode \
+	-o ${TMPDIR}/double_object_file_no_print \
+	|| exit 27
+
+"${TMPDIR}/double_object_file_no_print" || exit 28
+
 exit 0
