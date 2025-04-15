@@ -501,6 +501,12 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 	strcpy(M1_output, prefix);
 	strcat(M1_output, "/M1-macro-XXXXXX");
 	i = mkstemp(M1_output);
+
+	if(OBJECT_FILES_ONLY)
+	{
+		M1_output = destination;
+	}
+
 	if(-1 != i)
 	{
 		close(i);
@@ -518,6 +524,11 @@ void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char
 	if(!match("", blood_output))
 	{
 		if(!DIRTY_MODE) remove(blood_output);
+	}
+
+	if(OBJECT_FILES_ONLY)
+	{
+		return;
 	}
 
 	/* Build the final binary */

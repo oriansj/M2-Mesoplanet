@@ -110,6 +110,7 @@ test: M2-Mesoplanet
 	./test/test0001/run_test.sh
 	./test/test0002/run_test.sh
 	./test/test0003/run_test.sh
+	./test/test0004/run_test.sh
 #	sha256sum -c test/test.answers
 
 

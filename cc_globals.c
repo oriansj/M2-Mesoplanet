@@ -46,6 +46,7 @@ int ENDIAN;
 char* BASEADDRESS;
 int STDIO_USED;
 char* TEMPDIR;
+int OBJECT_FILES_ONLY;
 
 /* So we don't shoot ourself in the face */
 int FUZZING;

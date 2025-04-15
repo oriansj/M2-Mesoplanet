@@ -128,6 +128,11 @@ void prechecks(int argc, char** argv)
 			env = env + 1;
 			i += 2;
 		}
+		else if(match(argv[i], "-c"))
+		{
+			OBJECT_FILES_ONLY = TRUE;
+			i += 1;
+		}
 		else
 		{
 			i += 1;
@@ -163,6 +168,7 @@ int main(int argc, char** argv, char** envp)
 	char* name;
 	int DUMP_MODE = FALSE;
 	follow_includes = TRUE;
+	OBJECT_FILES_ONLY = FALSE;
 
 	/* Try to get our needed updates */
 	prechecks(argc, argv);
@@ -262,6 +268,11 @@ int main(int argc, char** argv, char** envp)
 			/* Handled by precheck */
 			i += 2;
 		}
+		else if(match(argv[i], "-c"))
+		{
+			/* Handled by precheck */
+			i += 1;
+		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
 			fputs("Usage: M2-Mesoplanet [options] file...\n"
@@ -277,6 +288,7 @@ int main(int argc, char** argv, char** envp)
 				" --dump-mode             Dump tokens before preprocessing\n"
 				" --dirty-mode            Do not remove temporary files\n"
 				" -D                      Add define\n"
+				" -c                      Compile and assemble, but do not link.\n"
 				" -I                      Add M2libc path. Will override the M2LIBC_PATH environment variable.\n"
 				" --fuzz                  Do not execve potentially dangerous inputs\n"
 				" --no-debug              Do not output debug info\n"
