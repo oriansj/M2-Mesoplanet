@@ -16,19 +16,10 @@
  * along with M2-Planet.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* What types we have */
-struct type* global_types;
-struct type* prim_types;
-
 struct object_file_list* extra_object_files;
 
 /* What we are currently working on */
 struct token_list* global_token;
-
-/* Output reorder collections*/
-struct token_list* output_list;
-struct token_list* strings_list;
-struct token_list* globals_list;
 
 /* Make our string collection more efficient */
 char* hold_string;
