@@ -19,20 +19,22 @@
 set -x
 
 TMPDIR="test/test0004/tmp"
+BINDIR="$PWD/bin"
 
 mkdir -p ${TMPDIR}
 
-bin/M2-Mesoplanet \
+"${BINDIR}/M2-Mesoplanet" \
 	-c \
 	-f test/test0004/main.c \
 	-o ${TMPDIR}/main.o \
 	|| exit 1
 
-bin/M2-Mesoplanet \
+cd ${TMPDIR} && "${BINDIR}/M2-Mesoplanet" \
 	-c \
-	-f test/test0004/f.c \
-	-o ${TMPDIR}/f.o \
+	-f ../f.c \
 	|| exit 2
+
+cd -
 
 if [ ! -f ${TMPDIR}/f.o ]; then
 	echo "FAILURE: ${TMPDIR}/f.o not found!"
@@ -42,6 +44,17 @@ fi
 if [ ! -f ${TMPDIR}/main.o ]; then
 	echo "FAILURE: ${TMPDIR}/main.o not found!"
 	exit 4
+fi
+
+cd ${TMPDIR} && "${BINDIR}/M2-Mesoplanet" \
+	../f.c ../main.c \
+	|| exit 5
+
+cd -
+
+if [ ! -f ${TMPDIR}/a.out ]; then
+	echo "FAILURE: ${TMPDIR}/a.out not found!"
+	exit 6
 fi
 
 exit 0

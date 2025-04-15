@@ -166,7 +166,9 @@ int main(int argc, char** argv, char** envp)
 	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
 	char* name;
+	char* first_input_filename = NULL;
 	int DUMP_MODE = FALSE;
+	int explicit_output_file = FALSE;
 	follow_includes = TRUE;
 	OBJECT_FILES_ONLY = FALSE;
 
@@ -241,6 +243,8 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
+			explicit_output_file = TRUE;
+
 			destination_name = argv[i + 1];
 			require(NULL != destination_name, "--output option requires a filename to follow\n");
 			destination_file = fopen(destination_name, "w");
@@ -351,6 +355,11 @@ int main(int argc, char** argv, char** envp)
 				exit(EXIT_FAILURE);
 			}
 
+			if(first_input_filename == NULL)
+			{
+				first_input_filename = name;
+			}
+
 			in = fopen(name, "r");
 			if(NULL == in)
 			{
@@ -423,6 +432,31 @@ int main(int argc, char** argv, char** envp)
 			/* Our preprocessed crap */
 			output_tokens(global_token, tempfile);
 			fclose(tempfile);
+
+			if(!explicit_output_file && OBJECT_FILES_ONLY)
+			{
+				destination_name = calloc(MAX_STRING, sizeof(char));
+
+				char* directory_separator = strrchr(first_input_filename, '/');
+				if(directory_separator == NULL)
+				{
+					/* No dir separator we just want the entire string */
+					directory_separator = first_input_filename;
+				}
+				else
+				{
+					directory_separator += 1;
+				}
+
+				strcpy(destination_name, directory_separator);
+
+				char* extension = strrchr(destination_name, '.');
+				if(extension == NULL)
+				{
+					extension = destination_name + strlen(destination_name);
+				}
+				strcpy(extension, ".o\0");
+			}
 
 			/* Make me a real binary */
 			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp);
