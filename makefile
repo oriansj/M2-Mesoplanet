@@ -88,7 +88,11 @@ M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c c
 .PHONY: clean
 clean:
 	rm -rf bin/
-#	./test/test0000/cleanup.sh
+	rm -rf test/test0000/tmp
+	rm -rf test/test0001/tmp
+	rm -rf test/test0002/tmp
+	rm -rf test/test0003/tmp
+	rm -rf test/test0004/tmp
 
 .PHONY: clean-tmp
 clean-tmp:
