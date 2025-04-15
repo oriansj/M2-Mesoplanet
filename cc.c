@@ -339,8 +339,8 @@ int main(int argc, char** argv, char** envp)
 		{
 			if(match(argv[i], "-f") || match(argv[i], "--file"))
 			{
-                            i = i + 1;
-                        }
+				i = i + 1;
+			}
 
 			if(NULL == hold_string)
 			{
