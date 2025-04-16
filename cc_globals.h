@@ -16,17 +16,10 @@
  * along with M2-Planet.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* What types we have */
-extern struct type* global_types;
-extern struct type* prim_types;
+extern struct object_file_list* extra_object_files;
 
 /* What we are currently working on */
 extern struct token_list* global_token;
-
-/* Output reorder collections*/
-extern struct token_list* output_list;
-extern struct token_list* strings_list;
-extern struct token_list* globals_list;
 
 /* Make our string collection more efficient */
 extern char* hold_string;
@@ -47,6 +40,7 @@ extern int ENDIAN;
 extern char* BASEADDRESS;
 extern int STDIO_USED;
 extern char* TEMPDIR;
+extern int OBJECT_FILES_ONLY;
 
 /* So we don't shoot ourself in the face */
 extern int FUZZING;

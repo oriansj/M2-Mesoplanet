@@ -21,7 +21,7 @@ PACKAGE = m2-mesoplanet
 
 # C compiler settings
 CC?=gcc
-CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb
+CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -O0 -std=c99 -ggdb -Wall -Wextra -Wstrict-prototypes
 ARCH:=$(shell get_machine)
 BLOOD_FLAG:=$(shell get_machine --blood)
 ENDIAN_FLAG:=$(shell get_machine --endian)
@@ -29,7 +29,7 @@ BASE_ADDRESS:=$(shell get_machine --hex2)
 
 all: M2-Mesoplanet
 
-M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
+M2-Mesoplanet: bin cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
 	$(CC) $(CFLAGS) \
 	M2libc/bootstrappable.c \
 	cc_reader.c \
@@ -43,7 +43,7 @@ M2-Mesoplanet: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spa
 	gcc_req.h \
 	-o bin/M2-Mesoplanet
 
-M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
+M2-boot: bin cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c cc.c cc_globals.c cc_globals.h
 	echo $(ARCH)
 	echo $(BLOOD_FLAG)
 	echo $(ENDIAN_FLAG)
@@ -52,9 +52,14 @@ M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c c
 	-f M2libc/sys/types.h \
 	-f M2libc/stddef.h \
 	-f M2libc/${ARCH}/linux/fcntl.c \
+	-f M2libc/fcntl.c \
 	-f M2libc/${ARCH}/linux/unistd.c \
 	-f M2libc/${ARCH}/linux/sys/stat.c \
+	-f M2libc/sys/utsname.h \
+	-f M2libc/ctype.c \
 	-f M2libc/stdlib.c \
+	-f M2libc/stdarg.h \
+	-f M2libc/stdio.h \
 	-f M2libc/stdio.c \
 	-f M2libc/string.c \
 	-f M2libc/bootstrappable.c \
@@ -79,7 +84,7 @@ M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c c
 	hex2 --architecture ${ARCH} \
 	${ENDIAN_FLAG} \
 	--base-address ${BASE_ADDRESS} \
-	-f ../M2libc/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f ./M2libc/${ARCH}/ELF-${ARCH}-debug.hex2 \
 	-f ./bin/M2-Mesoplanet-1.hex2 \
 	-o ./bin/M2-Mesoplanet
 
@@ -88,7 +93,11 @@ M2-boot: bin results cc.h cc_reader.c cc_core.c cc_macro.c cc_env.c cc_spawn.c c
 .PHONY: clean
 clean:
 	rm -rf bin/
-#	./test/test0000/cleanup.sh
+	rm -rf test/test0000/tmp
+	rm -rf test/test0001/tmp
+	rm -rf test/test0002/tmp
+	rm -rf test/test0003/tmp
+	rm -rf test/test0004/tmp
 
 .PHONY: clean-tmp
 clean-tmp:
@@ -101,16 +110,13 @@ clean-tmp:
 bin:
 	mkdir -p bin
 
-results:
-	mkdir -p test/results
-
 # tests
 test: M2-Mesoplanet
 	./test/test0000/run_test.sh
 	./test/test0001/run_test.sh
 	./test/test0002/run_test.sh
 	./test/test0003/run_test.sh
-#	sha256sum -c test/test.answers
+	./test/test0004/run_test.sh
 
 
 # Generate test answers

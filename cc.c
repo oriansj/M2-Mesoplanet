@@ -22,17 +22,17 @@
 
 /* The core functions */
 void populate_env(char** envp);
-void setup_env();
+void setup_env(void);
 char* env_lookup(char* variable);
-void initialize_types();
+void initialize_types(void);
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename, int include);
 struct token_list* reverse_list(struct token_list* head);
 
 void init_macro_env(char* sym, char* value, char* source, int num);
-void preprocess();
+void preprocess(void);
 void output_tokens(struct token_list *i, FILE* out);
 int strtoint(char *a);
-void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp);
+void spawn_processes(int debug_flag, char* prefix, char* preprocessed_file, char* destination, char** envp, int no_c_files);
 
 int follow_includes;
 
@@ -128,6 +128,11 @@ void prechecks(int argc, char** argv)
 			env = env + 1;
 			i += 2;
 		}
+		else if(match(argv[i], "-c"))
+		{
+			OBJECT_FILES_ONLY = TRUE;
+			i += 1;
+		}
 		else
 		{
 			i += 1;
@@ -161,8 +166,11 @@ int main(int argc, char** argv, char** envp)
 	char* destination_name = "a.out";
 	FILE* destination_file = stdout;
 	char* name;
+	char* first_input_filename = NULL;
 	int DUMP_MODE = FALSE;
+	int explicit_output_file = FALSE;
 	follow_includes = TRUE;
+	OBJECT_FILES_ONLY = FALSE;
 
 	/* Try to get our needed updates */
 	prechecks(argc, argv);
@@ -235,6 +243,8 @@ int main(int argc, char** argv, char** envp)
 		}
 		else if(match(argv[i], "-o") || match(argv[i], "--output"))
 		{
+			explicit_output_file = TRUE;
+
 			destination_name = argv[i + 1];
 			require(NULL != destination_name, "--output option requires a filename to follow\n");
 			destination_file = fopen(destination_name, "w");
@@ -262,6 +272,11 @@ int main(int argc, char** argv, char** envp)
 			/* Handled by precheck */
 			i += 2;
 		}
+		else if(match(argv[i], "-c"))
+		{
+			/* Handled by precheck */
+			i += 1;
+		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
 			fputs("Usage: M2-Mesoplanet [options] file...\n"
@@ -277,6 +292,7 @@ int main(int argc, char** argv, char** envp)
 				" --dump-mode             Dump tokens before preprocessing\n"
 				" --dirty-mode            Do not remove temporary files\n"
 				" -D                      Add define\n"
+				" -c                      Compile and assemble, but do not link.\n"
 				" -I                      Add M2libc path. Will override the M2LIBC_PATH environment variable.\n"
 				" --fuzz                  Do not execve potentially dangerous inputs\n"
 				" --no-debug              Do not output debug info\n"
@@ -323,8 +339,8 @@ int main(int argc, char** argv, char** envp)
 		{
 			if(match(argv[i], "-f") || match(argv[i], "--file"))
 			{
-                            i = i + 1;
-                        }
+				i = i + 1;
+			}
 
 			if(NULL == hold_string)
 			{
@@ -339,6 +355,11 @@ int main(int argc, char** argv, char** envp)
 				exit(EXIT_FAILURE);
 			}
 
+			if(first_input_filename == NULL)
+			{
+				first_input_filename = name;
+			}
+
 			in = fopen(name, "r");
 			if(NULL == in)
 			{
@@ -348,8 +369,20 @@ int main(int argc, char** argv, char** envp)
 				exit(EXIT_FAILURE);
 			}
 
-			global_token = read_all_tokens(in, global_token, name, follow_includes);
-			fclose(in);
+			if(ends_with(name, ".o"))
+			{
+				if(1 <= DEBUG_LEVEL) fprintf(stderr, "Object file added: '%s'\n", name);
+
+				struct object_file_list* last = extra_object_files;
+				extra_object_files = calloc(1, sizeof(struct object_file_list));
+				extra_object_files->file = in;
+				extra_object_files->next = last;
+			}
+			else
+			{
+				global_token = read_all_tokens(in, global_token, name, follow_includes);
+				fclose(in);
+			}
 
 			i += 1;
 		}
@@ -365,7 +398,7 @@ int main(int argc, char** argv, char** envp)
 		global_token = read_all_tokens(in, global_token, "STDIN", follow_includes);
 	}
 
-	if(NULL == global_token)
+	if(NULL == global_token && NULL == extra_object_files)
 	{
 		fputs("Either no input files were given or they were empty\n", stderr);
 		exit(EXIT_FAILURE);
@@ -412,8 +445,35 @@ int main(int argc, char** argv, char** envp)
 			output_tokens(global_token, tempfile);
 			fclose(tempfile);
 
+			if(!explicit_output_file && OBJECT_FILES_ONLY)
+			{
+				destination_name = calloc(MAX_STRING, sizeof(char));
+
+				char* directory_separator = strrchr(first_input_filename, '/');
+				if(directory_separator == NULL)
+				{
+					/* No dir separator we just want the entire string */
+					directory_separator = first_input_filename;
+				}
+				else
+				{
+					directory_separator += 1;
+				}
+
+				strcpy(destination_name, directory_separator);
+
+				char* extension = strrchr(destination_name, '.');
+				if(extension == NULL)
+				{
+					extension = destination_name + strlen(destination_name);
+				}
+				strcpy(extension, ".o\0");
+			}
+
+			int no_c_files = global_token == NULL;
+
 			/* Make me a real binary */
-			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp);
+			spawn_processes(debug_flag, TEMPDIR, name, destination_name, envp, no_c_files);
 
 			/* And clean up the donkey */
 			if(!DIRTY_MODE) remove(name);
