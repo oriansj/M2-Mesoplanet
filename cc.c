@@ -97,13 +97,31 @@ void prechecks(int argc, char** argv)
 				fputs("-I requires a PATH\n", stderr);
 				exit(EXIT_FAILURE);
 			}
-			if(1 <= DEBUG_LEVEL)
+
+			struct include_path_list* path = calloc(1, sizeof(struct include_path_list));
+			path->path = hold;
+
+			/* We want the first path on the CLI to be the first path checked so it needs to be in the proper order. */
+			if(include_paths == NULL)
 			{
-				fputs("M2LIBC_PATH set by -I to ", stderr);
-				fputs(hold, stderr);
-				fputc('\n', stderr);
+				include_paths = path;
 			}
-			M2LIBC_PATH = hold;
+			else
+			{
+				include_paths->next = path;
+			}
+
+			/* For backwards compatibility the first include path sets M2LIBC_PATH */
+			if(M2LIBC_PATH == NULL)
+			{
+				if(1 <= DEBUG_LEVEL)
+				{
+					fputs("M2LIBC_PATH set by -I to ", stderr);
+					fputs(hold, stderr);
+					fputc('\n', stderr);
+				}
+				M2LIBC_PATH = hold;
+			}
 			i += 2;
 		}
 		else if(match(argv[i], "-D"))

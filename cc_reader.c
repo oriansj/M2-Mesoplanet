@@ -427,6 +427,19 @@ int include_file(int ch, int include_file)
 				strcat(hold_string, new_filename + 1);
 				new_file = fopen(hold_string, "r");
 			}
+
+			struct include_path_list* path = include_paths;
+			while(new_file == NULL && path != NULL)
+			{
+				reset_hold_string();
+
+				strcat(hold_string, path->path);
+				strcat(hold_string, "/");
+				strcat(hold_string, new_filename + 1);
+				new_file = fopen(hold_string, "r");
+
+				path = path->next;
+			}
 		}
 
 		strcat(new_filename, "\"");

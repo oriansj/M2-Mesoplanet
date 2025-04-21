@@ -74,4 +74,10 @@ struct object_file_list
 	struct object_file_list* next;
 };
 
+struct include_path_list
+{
+	char* path;
+	struct include_path_list* next;
+};
+
 #include "cc_globals.h"
