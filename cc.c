@@ -181,6 +181,12 @@ int main(int argc, char** argv, char** envp)
 	setup_env();
 	if(1 <= DEBUG_LEVEL) fputs("Environment setup\n", stderr);
 
+	/* If this variable is set we treat calling the executable without arguments as an error. */
+	if(env_lookup("M2MESOPLANET_NEW_ARGUMENTLESS_BEHAVIOR") != NULL)
+	{
+		in = NULL;
+	}
+
 	M2LIBC_PATH = env_lookup("M2LIBC_PATH");
 	if(NULL == M2LIBC_PATH) M2LIBC_PATH = "./M2libc";
 	else if(1 <= DEBUG_LEVEL)
@@ -317,6 +323,10 @@ int main(int argc, char** argv, char** envp)
 			/* strip things down */
 			debug_flag = FALSE;
 			i += 1;
+		}
+		else if(match(argv[i], "-"))
+		{
+			in = stdin;
 		}
 		else if(match(argv[i], "--temp-directory"))
 		{
