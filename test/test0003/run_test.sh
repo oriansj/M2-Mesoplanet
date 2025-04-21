@@ -29,5 +29,11 @@ bin/M2-Mesoplanet \
 	-o ${TMPDIR}/include_paths1.c \
 	|| exit 1
 
+bin/M2-Mesoplanet \
+	-E \
+	test/test0003/include_paths2.c \
+	-o ${TMPDIR}/include_paths2.c \
+	|| exit 3
+
 sha256sum -c test/test0003/proof.answer || exit 2
 exit 0
