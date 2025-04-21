@@ -65,6 +65,11 @@ void output_tokens(struct token_list *i, FILE* out)
 	}
 }
 
+int starts_with(char* str, char* needle)
+{
+	return strcmp(str, needle) == 0;
+}
+
 int ends_with(char* str, char* needle)
 {
 	size_t str_len = strlen(str);

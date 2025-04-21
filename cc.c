@@ -89,9 +89,18 @@ void prechecks(int argc, char** argv)
 			follow_includes = FALSE;
 			i+= 1;
 		}
-		else if(match(argv[i], "-I"))
+		else if(starts_with(argv[i], "-I"))
 		{
-			hold = argv[i+1];
+			int two_arguments = strlen(argv[i]) == 2;
+			if(two_arguments)
+			{
+				hold = argv[i+1];
+			}
+			else
+			{
+				hold = argv[i] + 2;
+			}
+
 			if(NULL == hold)
 			{
 				fputs("-I requires a PATH\n", stderr);
@@ -122,7 +131,14 @@ void prechecks(int argc, char** argv)
 				}
 				M2LIBC_PATH = hold;
 			}
-			i += 2;
+			if(two_arguments)
+			{
+				i += 2;
+			}
+			else
+			{
+				i += 1;
+			}
 		}
 		else if(match(argv[i], "-D"))
 		{
@@ -286,10 +302,18 @@ int main(int argc, char** argv, char** envp)
 			/* handled by precheck */
 			i += 2;
 		}
-		else if(match(argv[i], "-I"))
+		else if(starts_with(argv[i], "-I"))
 		{
 			/* Handled by precheck */
-			i += 2;
+			if(strlen(argv[i]) > 2)
+			{
+				/* If path in the same string as -I/mypath/here */
+				i += 1;
+			}
+			else
+			{
+				i += 2;
+			}
 		}
 		else if(match(argv[i], "-D"))
 		{
