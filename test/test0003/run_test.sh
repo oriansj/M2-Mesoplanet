@@ -66,5 +66,13 @@ bin/M2-Mesoplanet \
 	-o ${TMPDIR}/include_paths5.c \
 	|| exit 7
 
+bin/M2-Mesoplanet \
+	-IM2libc \
+	test/test0003/include_paths5.c \
+	-o ${TMPDIR}/include_paths6 \
+	|| exit 7
+
+${TMPDIR}/include_paths6 || exit 8
+
 sha256sum -c test/test0003/proof.answer || exit 2
 exit 0

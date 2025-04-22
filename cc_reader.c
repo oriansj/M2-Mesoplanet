@@ -357,10 +357,14 @@ int include_file(int ch, int include_file)
 	/* Remove name from stream */
 	token = token->next;
 
+	if(match("stdio.h", new_filename + 1))
+	{
+		STDIO_USED = TRUE;
+	}
+
 	/* Try to open the file */
 	if('<' == new_filename[0])
 	{
-		if(match("stdio.h", new_filename + 1)) STDIO_USED = TRUE;
 		reset_hold_string();
 		strcat(hold_string, M2LIBC_PATH);
 		strcat(hold_string, "/");
