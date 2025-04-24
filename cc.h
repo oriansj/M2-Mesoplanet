@@ -30,6 +30,7 @@ int match(char* a, char* b);
 void require(int bool, char* error);
 char* int2str(int x, int base, int signed_p);
 void reset_hold_string(void);
+int starts_with(char* str, char* needle);
 int ends_with(char* str, char* needle);
 void append_file_contents(FILE* f, FILE* appended_file);
 
@@ -72,6 +73,12 @@ struct object_file_list
 {
 	FILE* file;
 	struct object_file_list* next;
+};
+
+struct include_path_list
+{
+	char* path;
+	struct include_path_list* next;
 };
 
 #include "cc_globals.h"

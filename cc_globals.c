@@ -18,6 +18,8 @@
 
 struct object_file_list* extra_object_files;
 
+struct include_path_list* include_paths;
+
 /* What we are currently working on */
 struct token_list* global_token;
 

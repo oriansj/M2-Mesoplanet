@@ -29,5 +29,50 @@ bin/M2-Mesoplanet \
 	-o ${TMPDIR}/include_paths1.c \
 	|| exit 1
 
+bin/M2-Mesoplanet \
+	-E \
+	test/test0003/include_paths2.c \
+	-o ${TMPDIR}/include_paths2.c \
+	|| exit 3
+
+bin/M2-Mesoplanet \
+	-E \
+	-I test/test0003/directory \
+	test/test0003/include_paths3.c \
+	-o ${TMPDIR}/include_paths3.c \
+	|| exit 4
+
+bin/M2-Mesoplanet \
+	-E \
+	-I test/test0003 \
+	-I test/test0003/directory \
+	test/test0003/include_paths3.c \
+	-o ${TMPDIR}/include_paths3.c \
+	|| exit 5
+
+bin/M2-Mesoplanet \
+	-E \
+	-I test/test0003 \
+	-I test/test0003/directory \
+	test/test0003/include_paths4.c \
+	-o ${TMPDIR}/include_paths4.c \
+	|| exit 6
+
+bin/M2-Mesoplanet \
+	-E \
+	-Itest/test0003 \
+	-Itest/test0003/directory \
+	test/test0003/include_paths4.c \
+	-o ${TMPDIR}/include_paths5.c \
+	|| exit 7
+
+bin/M2-Mesoplanet \
+	-IM2libc \
+	test/test0003/include_paths5.c \
+	-o ${TMPDIR}/include_paths6 \
+	|| exit 7
+
+${TMPDIR}/include_paths6 || exit 8
+
 sha256sum -c test/test0003/proof.answer || exit 2
 exit 0
