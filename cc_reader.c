@@ -449,10 +449,6 @@ int include_file(int ch, int include_file)
 		strcat(new_filename, "\"");
 	}
 
-	/* prevent multiple visits */
-	if(previously_seen(new_filename)) return ch;
-	just_seen(new_filename);
-
 	/* special case this compatibility crap */
 	if(match("\"../gcc_req.h\"", new_filename) || match("\"gcc_req.h\"", new_filename)) return ch;
 
