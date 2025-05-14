@@ -60,14 +60,14 @@ bin/M2-Mesoplanet \
 
 bin/M2-Mesoplanet \
 	-E \
-	-Itest/test0003 \
-	-Itest/test0003/directory \
+	-I test/test0003 \
+	-I test/test0003/directory \
 	test/test0003/include_paths4.c \
 	-o ${TMPDIR}/include_paths5.c \
 	|| exit 7
 
 bin/M2-Mesoplanet \
-	-IM2libc \
+	-I M2libc \
 	test/test0003/include_paths5.c \
 	-o ${TMPDIR}/include_paths6 \
 	|| exit 7
