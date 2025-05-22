@@ -29,10 +29,14 @@ mkdir -p ${TMPDIR}
 	-o ${TMPDIR}/main.o \
 	|| exit 1
 
+export M2LIBC_PATH=../../../M2libc
 cd ${TMPDIR} && "${BINDIR}/M2-Mesoplanet" \
 	-c \
+	-I ../../../M2libc \
 	-f ../f.c \
 	|| exit 2
+
+unset M2LIBC_PATH
 
 cd -
 
@@ -46,10 +50,11 @@ if [ ! -f ${TMPDIR}/main.o ]; then
 	exit 4
 fi
 
+export M2LIBC_PATH=../../../M2libc
 cd ${TMPDIR} && "${BINDIR}/M2-Mesoplanet" \
 	../f.c ../main.c \
 	|| exit 5
-
+unset M2LIBC_PATH
 cd -
 
 if [ ! -f ${TMPDIR}/a.out ]; then

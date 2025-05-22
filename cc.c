@@ -427,7 +427,7 @@ int main(int argc, char** argv, char** envp)
 
 				struct object_file_list* last = extra_object_files;
 				extra_object_files = calloc(1, sizeof(struct object_file_list));
-				extra_object_files->file = in;
+				extra_object_files->file = name;
 				extra_object_files->next = last;
 			}
 			else
