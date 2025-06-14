@@ -24,7 +24,6 @@ struct visited
 {
 	struct visited* prev;
 	char* name;
-	int count;
 };
 
 /* Globals */
@@ -39,48 +38,18 @@ int previously_seen(char* s)
 	struct visited* v = vision;
 	while(NULL != v)
 	{
-		if(match(v->name, s) && (0 < v->count)) return TRUE;
+		if(match(v->name, s)) return TRUE;
 		v = v->prev;
 	}
 	return FALSE;
 }
 
-void enter_file(char* s)
+void just_seen(char* s)
 {
-	struct visited* v = vision;
-	while(NULL != v)
-	{
-		if(match(v->name, s))
-		{
-			v->count = v->count + 1;
-			return;
-		}
-		v = v->prev;
-	}
-
-	/* looks like we need to allocate */
 	struct visited* hold = calloc(1, sizeof(struct visited));
 	hold->prev = vision;
 	hold->name = s;
-	hold->count = 1;
 	vision = hold;
-}
-
-void exit_file(char* s)
-{
-	struct visited* v = vision;
-	while(NULL != v)
-	{
-		if(match(v->name, s))
-		{
-			v->count = v->count - 1;
-			return;
-		}
-		v = v->prev;
-	}
-
-	/* Should never hit here */
-	require(0 == 1, "impossible exit_file hit");
 }
 
 int grab_byte(void)
@@ -480,9 +449,6 @@ int include_file(int ch, int include_file)
 		strcat(new_filename, "\"");
 	}
 
-	/* Prevent Loops but allow multiple visits */
-	if(previously_seen(new_filename)) return ch;
-
 	/* special case this compatibility crap */
 	if(match("\"../gcc_req.h\"", new_filename) || match("\"gcc_req.h\"", new_filename)) return ch;
 
@@ -520,7 +486,6 @@ int include_file(int ch, int include_file)
 
 struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* filename, int include)
 {
-	enter_file(filename);
 	token = current;
 	insert_file_header(filename, 1);
 	input  = a;
@@ -534,6 +499,5 @@ struct token_list* read_all_tokens(FILE* a, struct token_list* current, char* fi
 		if(match("#include", token->s)) ch = include_file(ch, include);
 	}
 
-	exit_file(filename);
 	return token;
 }
