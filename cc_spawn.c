@@ -482,7 +482,7 @@ char* spawn_catm(char* M2_output, char* prefix, char** envp)
 	char** array = calloc(MAX_ARRAY, sizeof(char*));
 	insert_array(array, 0, "catm");
 	insert_array(array, 1, catm_output);
-	insert_array(array, 1, M2_output);
+	insert_array(array, 2, M2_output);
 	while(extra_object_files != NULL)
 	{
 		insert_array(array, i, extra_object_files->file);
