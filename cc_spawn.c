@@ -17,9 +17,13 @@
  */
 
 #include"cc.h"
+
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #define MAX_ARRAY 256
+
+#define BUFFER_SIZE 65536
 
 char* env_lookup(char* variable);
 
@@ -485,6 +489,24 @@ char* spawn_catm(char* M2_output, char* prefix, char** envp)
 	insert_array(array, 2, M2_output);
 	while(extra_object_files != NULL)
 	{
+		int input = open(extra_object_files->file, 0, 0);
+		int bytes;
+		char* buffer = calloc(BUFFER_SIZE + 1, sizeof(char));
+		if(-1 == input)
+		{
+			fprintf(stderr, "Unable to open object file '%s'.\n", extra_object_files->file);
+			exit(EXIT_FAILURE);
+		}
+keep:
+		bytes = read(input, buffer, BUFFER_SIZE);
+		if(strstr(buffer, "__init_malloc") != NULL)
+		{
+			fputs("STDIO_USED\n", stderr);
+			STDIO_USED = TRUE;
+		}
+
+		if(BUFFER_SIZE == bytes) goto keep;
+
 		insert_array(array, i, extra_object_files->file);
 		i = i + 1;
 		extra_object_files = extra_object_files->next;
